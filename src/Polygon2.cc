@@ -73,12 +73,6 @@ void Polygon2::IsSimple(const FunctionCallbackInfo<Value> &info)
     HandleScope scope(isolate);
     try {
         Polygon_2 &poly = ExtractWrapped(info.This());
-        // NOTE(ocderby): CGAL Segfaults on linux if the polygon has no points in it,
-        // so catch that here.
-        if (poly.size() == 0) {
-            info.GetReturnValue().Set(Boolean::New(isolate, false));
-            return;
-        }
         info.GetReturnValue().Set(Boolean::New(isolate, poly.is_simple()));
     }
     catch (const exception &e) {

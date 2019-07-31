@@ -1,5 +1,5 @@
-#ifndef GENIE_CGAL_H
-#define GENIE_CGAL_H
+#ifndef NODE_CGAL_H
+#define NODE_CGAL_H
 
 #include "node.h"
 

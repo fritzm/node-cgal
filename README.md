@@ -1,14 +1,14 @@
 node-cgal
 =========
 
-[![Build Status](https://travis-ci.org/fluxio/node-cgal.png?branch=master)](https://travis-ci.org/fluxio/node-cgal)
+[![Build Status](https://travis-ci.org/fritzm/node-cgal.png?branch=master)](https://travis-ci.org/fritzm/node-cgal)
 
 A node.js module providing access to parts of the CGAL computational geometry library (non-SWIG).
 
 - Prerequisite: you will need to have the CGAL libraries and headers installed on your build and
 test machines for this.  CGAL sources can be downloaded from cgal.org, and built and installed by
 following the directions there.  This release has been developed and tested against CGAL release
-4.7.
+4.14.
 
 - To install and test locally, do "npm install", and "npm test" in this directory.
 
