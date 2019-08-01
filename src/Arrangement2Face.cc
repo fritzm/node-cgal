@@ -70,7 +70,7 @@ void Arrangement2Face::ToString(const v8::FunctionCallbackInfo<v8::Value> &info)
     Arrangement_2::Isolated_vertex_iterator i;
     for(i=face->isolated_vertices_begin(); i!=face->isolated_vertices_end(); ++i,++numisolated) {}
     str << "I:" << numisolated << "]";
-    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str()));
+    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 }
 
 
@@ -83,7 +83,7 @@ void Arrangement2Face::IsFictitious(const v8::FunctionCallbackInfo<v8::Value> &i
         info.GetReturnValue().Set(Boolean::New(isolate, face->is_fictitious()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -97,7 +97,7 @@ void Arrangement2Face::IsUnbounded(const v8::FunctionCallbackInfo<v8::Value> &in
         info.GetReturnValue().Set(Boolean::New(isolate, face->is_unbounded()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -106,6 +106,7 @@ void Arrangement2Face::OuterCCB(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Arrangement_2::Face_handle &face = ExtractWrapped(info.This());
         Local<Array> array = Array::New(isolate);
@@ -114,13 +115,13 @@ void Arrangement2Face::OuterCCB(const v8::FunctionCallbackInfo<v8::Value> &info)
             first = curr = face->outer_ccb();
             uint32_t i = 0;
             do {
-                array->Set(i, Arrangement2Halfedge::New(isolate, curr));
+                (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
             } while(++i,++curr != first);
         }
         info.GetReturnValue().Set(scope.Escape(array));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -129,6 +130,7 @@ void Arrangement2Face::Holes(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Arrangement_2::Face_handle &face = ExtractWrapped(info.This());
         Local<Array> array = Array::New(isolate);
@@ -136,18 +138,18 @@ void Arrangement2Face::Holes(const v8::FunctionCallbackInfo<v8::Value> &info)
         uint32_t i;
         for(it=face->holes_begin(),i=0; it!=face->holes_end(); ++it,++i) {
             Local<Array> hole = Array::New(isolate);
-            array->Set(i, hole);
+            (void)array->Set(context, i, hole);
             Arrangement_2::Ccb_halfedge_circulator first, curr;
             first = curr = *it;
             uint32_t j = 0;
             do {
-                hole->Set(j, Arrangement2Halfedge::New(isolate, curr));
+                (void)hole->Set(context, j, Arrangement2Halfedge::New(isolate, curr));
             } while(++j,++curr != first);
         }
         info.GetReturnValue().Set(scope.Escape(array));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -156,17 +158,18 @@ void Arrangement2Face::IsolatedVertices(const v8::FunctionCallbackInfo<v8::Value
 {
     Isolate* isolate = info.GetIsolate();
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Arrangement_2::Face_handle &face = ExtractWrapped(info.This());
         Local<Array> array = Array::New(isolate);
         Arrangement_2::Isolated_vertex_iterator it;
         uint32_t i;
         for(it=face->isolated_vertices_begin(),i=0; it!=face->isolated_vertices_end(); ++it,++i) {
-            array->Set(i, Arrangement2Vertex::New(isolate, it));
+            (void)array->Set(context, i, Arrangement2Vertex::New(isolate, it));
         }
         info.GetReturnValue().Set(scope.Escape(array));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

@@ -83,7 +83,7 @@ void Arrangement2Vertex::ToString(const FunctionCallbackInfo<Value> &info)
         str << vertex->point();
     }
     str << "]";
-    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str()));
+    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 }
 
 
@@ -96,7 +96,7 @@ void Arrangement2Vertex::IsAtOpenBoundary(const FunctionCallbackInfo<Value> &inf
         info.GetReturnValue().Set(Boolean::New(isolate, vertex->is_at_open_boundary()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -110,7 +110,7 @@ void Arrangement2Vertex::IsIsolated(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, vertex->is_isolated()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -124,7 +124,7 @@ void Arrangement2Vertex::Degree(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Integer::New(isolate, vertex->degree()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -133,6 +133,7 @@ void Arrangement2Vertex::IncidentHalfedges(const FunctionCallbackInfo<Value> &in
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
         Local<Array> array = Array::New(isolate);
@@ -140,12 +141,12 @@ void Arrangement2Vertex::IncidentHalfedges(const FunctionCallbackInfo<Value> &in
         first = curr = vertex->incident_halfedges();
         uint32_t i = 0;
         do {
-            array->Set(i, Arrangement2Halfedge::New(isolate, curr));
+            (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
         } while(++i,++curr != first);
         info.GetReturnValue().Set(array);
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -159,7 +160,7 @@ void Arrangement2Vertex::Face(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Arrangement2Face::New(isolate, vertex->face()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -173,7 +174,7 @@ void Arrangement2Vertex::Point(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Point2::New(isolate, vertex->point()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -187,7 +188,7 @@ void Arrangement2Vertex::ParameterSpaceInX(const FunctionCallbackInfo<Value> &in
         info.GetReturnValue().Set(Integer::New(isolate, vertex->parameter_space_in_x()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -201,6 +202,6 @@ void Arrangement2Vertex::ParameterSpaceInY(const FunctionCallbackInfo<Value> &in
         info.GetReturnValue().Set(Integer::New(isolate, vertex->parameter_space_in_y()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

@@ -60,7 +60,7 @@ void Arrangement2Halfedge::ToString(const FunctionCallbackInfo<Value> &info)
         str << "FIC ";
     }
     str << "]";
-    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str()));
+    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 }
 
 
@@ -73,7 +73,7 @@ void Arrangement2Halfedge::IsFictitious(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, edge->is_fictitious()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -87,7 +87,7 @@ void Arrangement2Halfedge::Source(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Arrangement2Vertex::New(isolate, edge->source()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -101,7 +101,7 @@ void Arrangement2Halfedge::Target(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Arrangement2Vertex::New(isolate, edge->target()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -115,7 +115,7 @@ void Arrangement2Halfedge::Face(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Arrangement2Face::New(isolate, edge->face()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -129,7 +129,7 @@ void Arrangement2Halfedge::Twin(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Arrangement2Halfedge::New(isolate, edge->twin()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -143,7 +143,7 @@ void Arrangement2Halfedge::Prev(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Arrangement2Halfedge::New(isolate, edge->prev()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -157,7 +157,7 @@ void Arrangement2Halfedge::Next(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Arrangement2Halfedge::New(isolate, edge->next()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -166,6 +166,7 @@ void Arrangement2Halfedge::CCB(const FunctionCallbackInfo<Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
         Local<Array> array = Array::New(isolate);
@@ -173,12 +174,12 @@ void Arrangement2Halfedge::CCB(const FunctionCallbackInfo<Value> &info)
         first = curr = edge->ccb();
         uint32_t i = 0;
         do {
-            array->Set(i, Arrangement2Halfedge::New(isolate, curr));
+            (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
         } while(++i,++curr != first);
         info.GetReturnValue().Set(array);
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -192,6 +193,6 @@ void Arrangement2Halfedge::Curve(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Curve2::New(isolate, edge->curve()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

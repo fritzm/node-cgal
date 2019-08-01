@@ -4,7 +4,7 @@
 #include "node.h"
 #include "v8.h"
 #include "AffTransformation2.h"
-//#include "Arrangement2.h"
+#include "Arrangement2.h"
 #include "BBox2.h"
 #include "Curve2.h"
 #include "D2.h"
@@ -89,7 +89,7 @@ void init(Local<Object> exports)
     NODE_DEFINE_CONSTANT(exports, ARR_INTERIOR);
 
     AffTransformation2::Init(exports);
-//    Arrangement2::Init(exports);
+    Arrangement2::Init(exports);
     BBox2::Init(exports);
     Curve2::Init(exports);
     D2::Init(exports);
