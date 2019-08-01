@@ -35,9 +35,7 @@
                     'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                     'GCC_ENABLE_CPP_RTTI': 'YES',
                     'OTHER_CPLUSPLUSFLAGS': [
-                        '-Wno-unneeded-internal-declaration',
-                        '-mmacosx-version-min=10.11',
-                        '-stdlib=libc++',
+                        '-Wno-null-pointer-arithmetic',
                         '<!@(echo $CGAL_GYP_CXXFLAGS)'
                      ],
                     'OTHER_LDFLAGS': [ '<!@(echo $CGAL_GYP_LDFLAGS)' ]
