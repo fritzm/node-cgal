@@ -32,6 +32,7 @@ void Direction2::RegisterMethods(Isolate *isolate)
 bool Direction2::ParseArg(Isolate *isolate, Local<Value> arg, Direction_2 &receiver)
 {
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
@@ -66,8 +67,8 @@ bool Direction2::ParseArg(Isolate *isolate, Local<Value> arg, Direction_2 &recei
         Local<Object> inits = Local<Object>::Cast(arg);
 
         K::FT dx, dy;
-        if (::ParseArg(isolate, inits->Get(SYMBOL(isolate, "dx")), dx) &&
-            ::ParseArg(isolate, inits->Get(SYMBOL(isolate, "dy")), dy))
+        if (::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "dx")).ToLocalChecked(), dx) &&
+            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "dy")).ToLocalChecked(), dy))
         {
             receiver = Direction_2(dx, dy);
             return true;
@@ -82,6 +83,7 @@ bool Direction2::ParseArg(Isolate *isolate, Local<Value> arg, Direction_2 &recei
 Local<Value> Direction2::ToPOD(Isolate *isolate, const Direction_2 &direction, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
 
     if (precise) {
@@ -92,7 +94,7 @@ Local<Value> Direction2::ToPOD(Isolate *isolate, const Direction_2 &direction, b
 #else
         dxstr << setprecision(20) << direction.dx();
 #endif
-        obj->Set(SYMBOL(isolate, "dx"), String::NewFromUtf8(isolate, dxstr.str().c_str()));
+        (void)obj->Set(context, SYMBOL(isolate, "dx"), String::NewFromUtf8(isolate, dxstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream dystr;
 #if CGAL_USE_EPECK
@@ -100,12 +102,12 @@ Local<Value> Direction2::ToPOD(Isolate *isolate, const Direction_2 &direction, b
 #else
         dystr << setprecision(20) << direction.dy();
 #endif
-        obj->Set(SYMBOL(isolate, "dy"), String::NewFromUtf8(isolate, dystr.str().c_str()));
+        (void)obj->Set(context, SYMBOL(isolate, "dy"), String::NewFromUtf8(isolate, dystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
 
-        obj->Set(SYMBOL(isolate, "dx"), Number::New(isolate, CGAL::to_double(direction.dx())));
-        obj->Set(SYMBOL(isolate, "dy"), Number::New(isolate, CGAL::to_double(direction.dy())));
+        (void)obj->Set(context, SYMBOL(isolate, "dx"), Number::New(isolate, CGAL::to_double(direction.dx())));
+        (void)obj->Set(context, SYMBOL(isolate, "dy"), Number::New(isolate, CGAL::to_double(direction.dy())));
 
     }
 
@@ -124,7 +126,7 @@ void Direction2::IsEqual(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisDir == otherDir));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -140,7 +142,7 @@ void Direction2::IsLessThan(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisDir < otherDir));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -156,7 +158,7 @@ void Direction2::IsGreaterThan(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisDir > otherDir));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -173,7 +175,7 @@ void Direction2::IsCCWBetween(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, dir.counterclockwise_in_between(d1, d2)));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -187,7 +189,7 @@ void Direction2::Opposite(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Direction2::New(isolate, -dir));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -201,7 +203,7 @@ void Direction2::ToVector(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Vector2::New(isolate, dir.vector()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -215,7 +217,7 @@ void Direction2::DX(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Number::New(isolate, CGAL::to_double(dir.dx())));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -229,6 +231,6 @@ void Direction2::DY(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Number::New(isolate, CGAL::to_double(dir.dy())));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

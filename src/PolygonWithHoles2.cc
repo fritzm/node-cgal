@@ -24,6 +24,7 @@ void PolygonWithHoles2::RegisterMethods(Isolate *isolate)
 bool PolygonWithHoles2::ParseArg(Isolate *isolate, Local<Value> arg, Polygon_with_holes_2 &receiver)
 {
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
@@ -36,8 +37,8 @@ bool PolygonWithHoles2::ParseArg(Isolate *isolate, Local<Value> arg, Polygon_wit
         Polygon_2 outer;
         vector<Polygon_2> holes;
 
-        if (Polygon2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "outer")), outer) &&
-            Polygon2::ParseSeqArg(isolate, inits->Get(SYMBOL(isolate, "holes")), back_inserter(holes)))
+        if (Polygon2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "outer")).ToLocalChecked(), outer) &&
+            Polygon2::ParseSeqArg(isolate, inits->Get(context, SYMBOL(isolate, "holes")).ToLocalChecked(), back_inserter(holes)))
         {
             receiver = Polygon_with_holes_2(outer, holes.begin(), holes.end());
             return true;
@@ -57,9 +58,10 @@ bool PolygonWithHoles2::ParseArg(Isolate *isolate, Local<Value> arg, Polygon_wit
 Local<Value> PolygonWithHoles2::ToPOD(Isolate *isolate, const Polygon_with_holes_2 &poly, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    obj->Set(SYMBOL(isolate, "outer"), Polygon2::ToPOD(isolate, poly.outer_boundary(), precise));
-    obj->Set(SYMBOL(isolate, "holes"), Polygon2::SeqToPOD(isolate, poly.holes_begin(), poly.holes_end(), precise));
+    (void)obj->Set(context, SYMBOL(isolate, "outer"), Polygon2::ToPOD(isolate, poly.outer_boundary(), precise));
+    (void)obj->Set(context, SYMBOL(isolate, "holes"), Polygon2::SeqToPOD(isolate, poly.holes_begin(), poly.holes_end(), precise));
     return scope.Escape(obj);
 }
 
@@ -75,7 +77,7 @@ void PolygonWithHoles2::IsEqual(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisPoly == otherPoly));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -89,7 +91,7 @@ void PolygonWithHoles2::Outer(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Polygon2::New(isolate, poly.outer_boundary()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -98,18 +100,19 @@ void PolygonWithHoles2::Holes(const FunctionCallbackInfo<Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Polygon_with_holes_2 &poly = ExtractWrapped(info.This());
         Local<Array> array = Array::New(isolate);
         uint32_t i;
         Polygon_with_holes_2::Hole_const_iterator it;
         for(it=poly.holes_begin(),i=0; it!=poly.holes_end(); ++it,++i) {
-            array->Set(i, Polygon2::New(isolate, *it));
+            (void)array->Set(context, i, Polygon2::New(isolate, *it));
         }
         info.GetReturnValue().Set(array);
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -123,6 +126,6 @@ void PolygonWithHoles2::IsUnbounded(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, poly.is_unbounded()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

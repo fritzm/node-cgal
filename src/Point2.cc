@@ -24,6 +24,9 @@ void Point2::RegisterMethods(Isolate *isolate)
 
 bool Point2::ParseArg(Isolate *isolate, Local<Value> arg, Point_2 &receiver)
 {
+    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
+
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
         return true;
@@ -33,8 +36,8 @@ bool Point2::ParseArg(Isolate *isolate, Local<Value> arg, Point_2 &receiver)
         Local<Array> coords = Local<Array>::Cast(arg);
 
         K::FT x, y;
-        if (::ParseArg(isolate, coords->Get(0), x) &&
-            ::ParseArg(isolate, coords->Get(1), y))
+        if (::ParseArg(isolate, coords->Get(context, 0).ToLocalChecked(), x) &&
+            ::ParseArg(isolate, coords->Get(context, 1).ToLocalChecked(), y))
         {
             receiver = Point_2(x, y);
             return true;
@@ -49,6 +52,7 @@ bool Point2::ParseArg(Isolate *isolate, Local<Value> arg, Point_2 &receiver)
 Local<Value> Point2::ToPOD(Isolate *isolate, const Point_2 &point, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Array> array = Array::New(isolate, 2);
 
     if (precise) {
@@ -59,7 +63,7 @@ Local<Value> Point2::ToPOD(Isolate *isolate, const Point_2 &point, bool precise)
 #else
         x_str << setprecision(20) << point.x();
 #endif
-        array->Set(0, String::NewFromUtf8(isolate, x_str.str().c_str()));
+        (void)array->Set(context, 0, String::NewFromUtf8(isolate, x_str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream y_str;
 #if CGAL_USE_EPECK
@@ -67,11 +71,11 @@ Local<Value> Point2::ToPOD(Isolate *isolate, const Point_2 &point, bool precise)
 #else
         y_str << setprecision(20) << point.y();
 #endif
-        array->Set(1, String::NewFromUtf8(isolate, y_str.str().c_str()));
+        (void)array->Set(context, 1, String::NewFromUtf8(isolate, y_str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
-        array->Set(0, Number::New(isolate, CGAL::to_double(point.cartesian(0))));
-        array->Set(1, Number::New(isolate, CGAL::to_double(point.cartesian(1))));
+        (void)array->Set(context, 0, Number::New(isolate, CGAL::to_double(point.cartesian(0))));
+        (void)array->Set(context, 1, Number::New(isolate, CGAL::to_double(point.cartesian(1))));
     }
 
     return scope.Escape(array);
@@ -89,7 +93,7 @@ void Point2::IsEqual(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisPoint == otherPoint));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -103,7 +107,7 @@ void Point2::X(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Number::New(isolate, CGAL::to_double(point.x())));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -117,7 +121,7 @@ void Point2::Y(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Number::New(isolate, CGAL::to_double(point.y())));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -138,6 +142,6 @@ void Point2::Transform(const FunctionCallbackInfo<Value> &info)
         ARGS_ASSERT(isolate, false);
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

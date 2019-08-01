@@ -5,7 +5,7 @@
     if (!(ASSERTION)) {                                             \
         (ISOLATE)->ThrowException(                                  \
             v8::Exception::TypeError(                               \
-                v8::String::NewFromUtf8(ISOLATE, "Wrong arguments") \
+                v8::String::NewFromUtf8(ISOLATE, "Wrong arguments", v8::NewStringType::kInternalized).ToLocalChecked() \
             )                                                       \
         );                                                          \
     }                                                               \
@@ -31,9 +31,9 @@
     ARGS_ASSERT(ISOLATE, PARSER(ISOLATE, *RECEIVER));         \
 
 
-// Convenience macro for the deprecated v8::String::NewSymbol, beacuse
+// Convenience macro for the deprecated v8::String::NewSymbol, because
 // the recommended replacement incantation is super verbose...
 
-#define SYMBOL(ISOLATE, STRING) v8::String::NewFromUtf8(ISOLATE, STRING, v8::String::kInternalizedString)
+#define SYMBOL(ISOLATE, STRING) v8::String::NewFromUtf8(ISOLATE, STRING, v8::NewStringType::kInternalized).ToLocalChecked()
 
 #endif // !defined(CGAL_ARGS_H)

@@ -21,6 +21,7 @@ void Vector2::RegisterMethods(Isolate *isolate)
 bool Vector2::ParseArg(Isolate *isolate, Local<Value> arg, Vector_2 &receiver)
 {
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
@@ -49,8 +50,8 @@ bool Vector2::ParseArg(Isolate *isolate, Local<Value> arg, Vector_2 &receiver)
         Local<Object> inits = Local<Object>::Cast(arg);
 
         K::FT x, y;
-        if (::ParseArg(isolate, inits->Get(SYMBOL(isolate, "x")), x) &&
-            ::ParseArg(isolate, inits->Get(SYMBOL(isolate, "y")), y))
+        if (::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "x")).ToLocalChecked(), x) &&
+            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "y")).ToLocalChecked(), y))
         {
             receiver = Vector_2(x, y);
             return true;
@@ -65,6 +66,7 @@ bool Vector2::ParseArg(Isolate *isolate, Local<Value> arg, Vector_2 &receiver)
 Local<Value> Vector2::ToPOD(Isolate *isolate, const Vector_2 &vector, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
 
     if (precise) {
@@ -75,7 +77,7 @@ Local<Value> Vector2::ToPOD(Isolate *isolate, const Vector_2 &vector, bool preci
 #else
         xstr << setprecision(20) << vector.x();
 #endif
-        obj->Set(SYMBOL(isolate, "x"), String::NewFromUtf8(isolate, xstr.str().c_str()));
+        (void)obj->Set(context, SYMBOL(isolate, "x"), String::NewFromUtf8(isolate, xstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream ystr;
 #if CGAL_USE_EPECK
@@ -83,11 +85,11 @@ Local<Value> Vector2::ToPOD(Isolate *isolate, const Vector_2 &vector, bool preci
 #else
         ystr << setprecision(20) << vector.y();
 #endif
-        obj->Set(SYMBOL(isolate, "y"), String::NewFromUtf8(isolate, ystr.str().c_str()));
+        (void)obj->Set(context, SYMBOL(isolate, "y"), String::NewFromUtf8(isolate, ystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
-        obj->Set(SYMBOL(isolate, "x"), Number::New(isolate, CGAL::to_double(vector.x())));
-        obj->Set(SYMBOL(isolate, "y"), Number::New(isolate, CGAL::to_double(vector.y())));
+        (void)obj->Set(context, SYMBOL(isolate, "x"), Number::New(isolate, CGAL::to_double(vector.x())));
+        (void)obj->Set(context, SYMBOL(isolate, "y"), Number::New(isolate, CGAL::to_double(vector.y())));
     }
 
     return scope.Escape(obj);

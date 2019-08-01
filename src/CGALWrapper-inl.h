@@ -28,6 +28,7 @@ void CGALWrapper<WrapperClass, CGALClass>::Init(v8::Local<ParentScope> exports)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::HandleScope scope(isolate);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     // In some circumstances, our module init gets called more than once within the same process by
     // node.  We need to be careful to avoid re-initializing our static constructor template,
@@ -48,13 +49,14 @@ void CGALWrapper<WrapperClass, CGALClass>::Init(v8::Local<ParentScope> exports)
         WrapperClass::RegisterMethods(isolate);
 
         constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        constructorTemplate->SetClassName(v8::String::NewFromUtf8(isolate, WrapperClass::Name));
+        constructorTemplate->SetClassName(v8::String::NewFromUtf8(isolate, WrapperClass::Name, v8::NewStringType::kInternalized).ToLocalChecked());
 
     }
 
-    exports->Set(
-        v8::String::NewFromUtf8(isolate, WrapperClass::Name),
-        sConstructorTemplate.Get(isolate)->GetFunction()
+    (void)exports->Set(
+        context,
+        v8::String::NewFromUtf8(isolate, WrapperClass::Name, v8::NewStringType::kInternalized).ToLocalChecked(),
+        sConstructorTemplate.Get(isolate)->GetFunction(context).ToLocalChecked()
     );
 }
 
@@ -63,7 +65,10 @@ template<typename WrapperClass, typename CGALClass>
 v8::Local<v8::Value> CGALWrapper<WrapperClass, CGALClass>::New(v8::Isolate *isolate, const CGALClass &CGALInstance)
 {
     v8::EscapableHandleScope scope(isolate);
-    v8::Local<v8::Object> wrapper = sConstructorTemplate.Get(isolate)->GetFunction()->NewInstance();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> wrapper = sConstructorTemplate.Get(isolate)
+        ->GetFunction(context).ToLocalChecked()
+        ->NewInstance(context).ToLocalChecked();
     CGALClass &wrapped = ExtractWrapped(wrapper);
     wrapped = CGALInstance;
     return scope.Escape(wrapper);
@@ -73,11 +78,13 @@ v8::Local<v8::Value> CGALWrapper<WrapperClass, CGALClass>::New(v8::Isolate *isol
 template<typename NumberPrimitive>
 bool ParseArg(v8::Isolate *isolate, v8::Local<v8::Value> obj, NumberPrimitive &parsed)
 {
+    v8::HandleScope scope(isolate);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     if (obj->IsNumber()) {
-        parsed = obj->NumberValue();
+        parsed = obj->NumberValue(context).ToChecked();
         return true;
     } else if (obj->IsString()) {
-        std::istringstream str(*v8::String::Utf8Value(obj));
+        std::istringstream str(*v8::String::Utf8Value(isolate, obj));
         str >> parsed;
         return !str.fail();
     } else {
@@ -94,11 +101,12 @@ v8::Local<v8::Value> CGALWrapper<WrapperClass, CGALClass>::SeqToPOD(
     bool precise)
 {
     v8::EscapableHandleScope scope(isolate);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Array> array = v8::Array::New(isolate);
     ForwardIterator it;
     uint32_t i;
     for(it=first,i=0; it!=last; ++it,++i) {
-        array->Set(i, WrapperClass::ToPOD(isolate, *it, precise));
+        (void)array->Set(context, i, WrapperClass::ToPOD(isolate, *it, precise));
     }
     return scope.Escape(array);
 }
@@ -112,11 +120,12 @@ bool CGALWrapper<WrapperClass, CGALClass>::ParseSeqArg(
     OutputIterator iterator)
 {
     v8::HandleScope scope(isolate);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     if (!arg->IsArray()) return false;
     v8::Local<v8::Array> wrappers = v8::Local<v8::Array>::Cast(arg);
     for(uint32_t i=0; i<wrappers->Length(); ++i) {
         CGALClass newCGALInstance;
-        if (WrapperClass::ParseArg(isolate, wrappers->Get(i), newCGALInstance)) {
+        if (WrapperClass::ParseArg(isolate, wrappers->Get(context, i).ToLocalChecked(), newCGALInstance)) {
             *(iterator++) = newCGALInstance;
         } else {
             return false;
@@ -163,7 +172,7 @@ void CGALWrapper<WrapperClass, CGALClass>::ToPOD(const v8::FunctionCallbackInfo<
     bool precise = true;
     if (info.Length() == 1) {
         ARGS_ASSERT(isolate, info[0]->IsBoolean())
-        precise = info[0]->BooleanValue();
+        precise = info[0]->BooleanValue(isolate);
     }
 
     info.GetReturnValue().Set(WrapperClass::ToPOD(isolate, wrapper->mWrapped, precise));
@@ -175,7 +184,8 @@ void CGALWrapper<WrapperClass, CGALClass>::Inspect(const v8::FunctionCallbackInf
 {
     v8::Isolate *isolate = info.GetIsolate();
     v8::HandleScope scope(isolate);
-    info.GetReturnValue().Set(info.This()->ToString());
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    info.GetReturnValue().Set(info.This()->ToString(context).ToLocalChecked());
 }
 
 
@@ -187,7 +197,7 @@ void CGALWrapper<WrapperClass, CGALClass>::ToString(const v8::FunctionCallbackIn
     CGALClass &wrapped = ExtractWrapped(info.This());
     std::ostringstream str;
     str << "[object "  << WrapperClass::Name << " " << wrapped << "]";
-    info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, str.str().c_str()));
+    info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, str.str().c_str(), v8::NewStringType::kNormal).ToLocalChecked());
 }
 
 

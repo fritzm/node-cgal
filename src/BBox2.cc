@@ -21,6 +21,7 @@ void BBox2::RegisterMethods(Isolate *isolate)
 bool BBox2::ParseArg(Isolate *isolate, Local<Value> arg, Bbox_2 &receiver)
 {
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
@@ -30,16 +31,16 @@ bool BBox2::ParseArg(Isolate *isolate, Local<Value> arg, Bbox_2 &receiver)
     if (arg->IsObject()) {
         Local<Object> bounds = Local<Object>::Cast(arg);
 
-        if (bounds->Get(SYMBOL(isolate, "xmin"))->IsNumber() &&
-            bounds->Get(SYMBOL(isolate, "ymin"))->IsNumber() &&
-            bounds->Get(SYMBOL(isolate, "xmax"))->IsNumber() &&
-            bounds->Get(SYMBOL(isolate, "ymax"))->IsNumber())
+        if (bounds->Get(context, SYMBOL(isolate, "xmin")).ToLocalChecked()->IsNumber() &&
+            bounds->Get(context, SYMBOL(isolate, "ymin")).ToLocalChecked()->IsNumber() &&
+            bounds->Get(context, SYMBOL(isolate, "xmax")).ToLocalChecked()->IsNumber() &&
+            bounds->Get(context, SYMBOL(isolate, "ymax")).ToLocalChecked()->IsNumber())
         {
             receiver = Bbox_2(
-                bounds->Get(SYMBOL(isolate, "xmin"))->NumberValue(),
-                bounds->Get(SYMBOL(isolate, "ymin"))->NumberValue(),
-                bounds->Get(SYMBOL(isolate, "xmax"))->NumberValue(),
-                bounds->Get(SYMBOL(isolate, "ymax"))->NumberValue()
+                bounds->Get(context, SYMBOL(isolate, "xmin")).ToLocalChecked()->NumberValue(context).ToChecked(),
+                bounds->Get(context, SYMBOL(isolate, "ymin")).ToLocalChecked()->NumberValue(context).ToChecked(),
+                bounds->Get(context, SYMBOL(isolate, "xmax")).ToLocalChecked()->NumberValue(context).ToChecked(),
+                bounds->Get(context, SYMBOL(isolate, "ymax")).ToLocalChecked()->NumberValue(context).ToChecked()
             );
             return true;
         }
@@ -53,11 +54,12 @@ bool BBox2::ParseArg(Isolate *isolate, Local<Value> arg, Bbox_2 &receiver)
 Local<Value> BBox2::ToPOD(Isolate *isolate, const Bbox_2 &box, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    obj->Set(SYMBOL(isolate, "xmin"), Number::New(isolate, box.xmin()));
-    obj->Set(SYMBOL(isolate, "ymin"), Number::New(isolate, box.ymin()));
-    obj->Set(SYMBOL(isolate, "xmax"), Number::New(isolate, box.xmax()));
-    obj->Set(SYMBOL(isolate, "ymax"), Number::New(isolate, box.ymax()));
+    (void)obj->Set(context, SYMBOL(isolate, "xmin"), Number::New(isolate, box.xmin()));
+    (void)obj->Set(context, SYMBOL(isolate, "ymin"), Number::New(isolate, box.ymin()));
+    (void)obj->Set(context, SYMBOL(isolate, "xmax"), Number::New(isolate, box.xmax()));
+    (void)obj->Set(context, SYMBOL(isolate, "ymax"), Number::New(isolate, box.ymax()));
     return scope.Escape(obj);
 }
 
@@ -73,7 +75,7 @@ void BBox2::Overlaps(const v8::FunctionCallbackInfo<v8::Value> &info)
         return info.GetReturnValue().Set(Boolean::New(isolate, do_overlap(thisBox, otherBox)));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -89,6 +91,6 @@ void BBox2::Add(const v8::FunctionCallbackInfo<v8::Value> &info)
         return info.GetReturnValue().Set(BBox2::New(isolate, thisBox + otherBox));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "node-cgal",
-  "version": "4.7.0",
+  "version": "4.14.0",
   "description": "CGAL bindings for node.js",
   "keywords": [
     "CGAL",
@@ -10,7 +10,7 @@
   "private": true,
   "repository": {},
   "devDependencies": {
-    "jasmine-node": "1.14.5"
+    "jasmine-node": "^3.0.0"
   },
   "scripts": {
     "test": "scripts/test",
@@ -18,8 +18,13 @@
     "clean": "node-gyp clean && rm -rf build"
   },
   "engines": {
-    "node": ">=5.0.0"
+    "node": ">=12.0.0"
   },
-  "os": [ "darwin", "linux" ],
-  "cpu": [ "x64" ]
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ]
 }

@@ -77,6 +77,7 @@ void PolygonSet2::PolygonsWithHoles(const FunctionCallbackInfo<Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Polygon_set_2 &polySet = ExtractWrapped(info.This());
         vector<Polygon_with_holes_2> pwhs;
@@ -85,12 +86,12 @@ void PolygonSet2::PolygonsWithHoles(const FunctionCallbackInfo<Value> &info)
         uint32_t i;
         vector<Polygon_with_holes_2>::iterator it;
         for(it=pwhs.begin(),i=0; it!=pwhs.end(); ++it,++i) {
-            array->Set(i, PolygonWithHoles2::New(isolate, *it));
+            (void)array->Set(context, i, PolygonWithHoles2::New(isolate, *it));
         }
         info.GetReturnValue().Set(array);
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -104,7 +105,7 @@ void PolygonSet2::NumPolygonsWithHoles(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Number::New(isolate, polySet.number_of_polygons_with_holes()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -118,7 +119,7 @@ void PolygonSet2::IsEmpty(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, polySet.is_empty()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -132,7 +133,7 @@ void PolygonSet2::IsPlane(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, polySet.is_plane()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -146,7 +147,7 @@ void PolygonSet2::IsPlane(const FunctionCallbackInfo<Value> &info)
 //         info.GetReturnValue().Set(isolate, Arrangement2::New(polySet.arrangement()));
 //     }
 //     catch (const exception &e) {
-//         isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+//         isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
 //     }
 // }
 
@@ -162,7 +163,7 @@ void PolygonSet2::Clear(const FunctionCallbackInfo<Value> &info)
         return;
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -196,7 +197,7 @@ void PolygonSet2::Insert(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -212,7 +213,7 @@ void PolygonSet2::Complement(const FunctionCallbackInfo<Value> &info)
         return;
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -253,7 +254,7 @@ void PolygonSet2::Intersection(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -294,7 +295,7 @@ void PolygonSet2::Join(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -335,7 +336,7 @@ void PolygonSet2::Difference(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -376,7 +377,7 @@ void PolygonSet2::SymmetricDifference(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -414,7 +415,7 @@ void PolygonSet2::Intersects(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -431,7 +432,7 @@ void PolygonSet2::Intersects(const FunctionCallbackInfo<Value> &info)
 //         info.GetReturnValue().Set(Boolean::New(isolate, polySet.locate(point, pwh)));
 //     }
 //     catch (const exception &e) {
-//         isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+//         isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
 //     }
 // }
 
@@ -475,7 +476,7 @@ void PolygonSet2::OrientedSide(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -489,6 +490,6 @@ void PolygonSet2::IsValid(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, polySet.is_valid()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

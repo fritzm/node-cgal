@@ -22,6 +22,7 @@ void Segment2::RegisterMethods(Isolate *isolate)
 bool Segment2::ParseArg(Isolate *isolate, Local<Value> arg, Segment_2 &receiver)
 {
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
@@ -33,8 +34,8 @@ bool Segment2::ParseArg(Isolate *isolate, Local<Value> arg, Segment_2 &receiver)
 
         Point_2 source, target;
 
-        if (Point2::ParseArg(isolate, ends->Get(SYMBOL(isolate, "source")), source) &&
-            Point2::ParseArg(isolate, ends->Get(SYMBOL(isolate, "target")), target))
+        if (Point2::ParseArg(isolate, ends->Get(context, SYMBOL(isolate, "source")).ToLocalChecked(), source) &&
+            Point2::ParseArg(isolate, ends->Get(context, SYMBOL(isolate, "target")).ToLocalChecked(), target))
         {
             receiver = Segment_2(source, target);
             return true;
@@ -49,9 +50,10 @@ bool Segment2::ParseArg(Isolate *isolate, Local<Value> arg, Segment_2 &receiver)
 Local<Value> Segment2::ToPOD(Isolate *isolate, const Segment_2 &segment, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    obj->Set(SYMBOL(isolate, "source"), Point2::ToPOD(isolate, segment.source(), precise));
-    obj->Set(SYMBOL(isolate, "target"), Point2::ToPOD(isolate, segment.target(), precise));
+    (void)obj->Set(context, SYMBOL(isolate, "source"), Point2::ToPOD(isolate, segment.source(), precise));
+    (void)obj->Set(context, SYMBOL(isolate, "target"), Point2::ToPOD(isolate, segment.target(), precise));
     return scope.Escape(obj);
 }
 
@@ -65,7 +67,7 @@ void Segment2::IsHorizontal(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, segment.is_horizontal()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -79,6 +81,6 @@ void Segment2::IsVertical(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, segment.is_vertical()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

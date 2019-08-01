@@ -25,6 +25,7 @@ void Line2::RegisterMethods(Isolate *isolate)
 bool Line2::ParseArg(Isolate *isolate, Local<Value> arg, Line_2 &receiver)
 {
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
@@ -35,17 +36,17 @@ bool Line2::ParseArg(Isolate *isolate, Local<Value> arg, Line_2 &receiver)
         Local<Object> inits = Local<Object>::Cast(arg);
 
         K::FT a, b, c;
-        if (::ParseArg(isolate, inits->Get(SYMBOL(isolate, "a")), a) &&
-            ::ParseArg(isolate, inits->Get(SYMBOL(isolate, "b")), b) &&
-            ::ParseArg(isolate, inits->Get(SYMBOL(isolate, "c")), c))
+        if (::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "a")).ToLocalChecked(), a) &&
+            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "b")).ToLocalChecked(), b) &&
+            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "c")).ToLocalChecked(), c))
         {
             receiver = Line_2(a, b, c);
             return true;
         }
 
         Point_2 p, q;
-        if (Point2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "p")), p) &&
-            Point2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "q")), q))
+        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
+            Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "q")).ToLocalChecked(), q))
         {
             receiver = Line_2(p, q);
             return true;
@@ -60,6 +61,7 @@ bool Line2::ParseArg(Isolate *isolate, Local<Value> arg, Line_2 &receiver)
 Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
 
     if (precise) {
@@ -70,7 +72,7 @@ Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 #else
         astr << setprecision(20) << line.a();
 #endif
-        obj->Set(SYMBOL(isolate, "a"), String::NewFromUtf8(isolate, astr.str().c_str()));
+        (void)obj->Set(context, SYMBOL(isolate, "a"), String::NewFromUtf8(isolate, astr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream bstr;
 #if CGAL_USE_EPECK
@@ -78,7 +80,7 @@ Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 #else
         bstr << setprecision(20) << line.b();
 #endif
-        obj->Set(SYMBOL(isolate, "b"), String::NewFromUtf8(isolate, bstr.str().c_str()));
+        (void)obj->Set(context, SYMBOL(isolate, "b"), String::NewFromUtf8(isolate, bstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream cstr;
 #if CGAL_USE_EPECK
@@ -86,13 +88,13 @@ Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 #else
         cstr << setprecision(20) << line.c();
 #endif
-        obj->Set(SYMBOL(isolate, "c"), String::NewFromUtf8(isolate, cstr.str().c_str()));
+        (void)obj->Set(context, SYMBOL(isolate, "c"), String::NewFromUtf8(isolate, cstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
 
-        obj->Set(SYMBOL(isolate, "a"), Number::New(isolate, CGAL::to_double(line.a())));
-        obj->Set(SYMBOL(isolate, "b"), Number::New(isolate, CGAL::to_double(line.b())));
-        obj->Set(SYMBOL(isolate, "c"), Number::New(isolate, CGAL::to_double(line.c())));
+        (void)obj->Set(context, SYMBOL(isolate, "a"), Number::New(isolate, CGAL::to_double(line.a())));
+        (void)obj->Set(context, SYMBOL(isolate, "b"), Number::New(isolate, CGAL::to_double(line.b())));
+        (void)obj->Set(context, SYMBOL(isolate, "c"), Number::New(isolate, CGAL::to_double(line.c())));
 
     }
 
@@ -111,7 +113,7 @@ void Line2::IsEqual(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisLine == otherLine));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -125,7 +127,7 @@ void Line2::IsDegenerate(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, line.is_degenerate()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -139,7 +141,7 @@ void Line2::IsHorizontal(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, line.is_horizontal()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -153,7 +155,7 @@ void Line2::IsVertical(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, line.is_vertical()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -167,6 +169,6 @@ void Line2::Opposite(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Line2::New(isolate, line.opposite()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

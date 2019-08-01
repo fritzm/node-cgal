@@ -35,6 +35,7 @@ void Ray2::RegisterMethods(Isolate *isolate)
 bool Ray2::ParseArg(Isolate *isolate, Local<Value> arg, Ray_2 &receiver)
 {
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
         receiver = ExtractWrapped(Local<Object>::Cast(arg));
@@ -46,32 +47,32 @@ bool Ray2::ParseArg(Isolate *isolate, Local<Value> arg, Ray_2 &receiver)
 
         Point_2 p;
         Direction_2 d;
-        if (Point2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "p")), p) &&
-            Direction2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "d")), d))
+        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
+            Direction2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "d")).ToLocalChecked(), d))
         {
             receiver = Ray_2(p, d);
             return true;
         }
 
         Point_2 q;
-        if (Point2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "p")), p) &&
-            Point2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "q")), q))
+        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
+            Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "q")).ToLocalChecked(), q))
         {
             receiver = Ray_2(p, q);
             return true;
         }
 
         Line_2 l;
-        if (Point2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "p")), p) &&
-            Line2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "l")), l))
+        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
+            Line2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "l")).ToLocalChecked(), l))
         {
             receiver = Ray_2(p, l);
             return true;
         }
 
         Vector_2 v;
-        if (Point2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "p")), p) &&
-            Vector2::ParseArg(isolate, inits->Get(SYMBOL(isolate, "v")), v))
+        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
+            Vector2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "v")).ToLocalChecked(), v))
         {
             receiver = Ray_2(p, v);
             return true;
@@ -86,9 +87,10 @@ bool Ray2::ParseArg(Isolate *isolate, Local<Value> arg, Ray_2 &receiver)
 Local<Value> Ray2::ToPOD(Isolate *isolate, const Ray_2 &ray, bool precise)
 {
     EscapableHandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    obj->Set(SYMBOL(isolate, "p"), Point2::ToPOD(isolate, ray.source(), precise));
-    obj->Set(SYMBOL(isolate, "d"), Direction2::ToPOD(isolate, ray.direction(), precise));
+    (void)obj->Set(context, SYMBOL(isolate, "p"), Point2::ToPOD(isolate, ray.source(), precise));
+    (void)obj->Set(context, SYMBOL(isolate, "d"), Direction2::ToPOD(isolate, ray.direction(), precise));
     return scope.Escape(obj);
 }
 
@@ -104,7 +106,7 @@ void Ray2::IsEqual(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisRay == otherRay));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -118,7 +120,7 @@ void Ray2::Source(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Point2::New(isolate, ray.source()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -127,14 +129,15 @@ void Ray2::Point(const FunctionCallbackInfo<Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     try {
         Ray_2 &ray = ExtractWrapped(info.This());
         ARGS_ASSERT(isolate, info.Length() == 1);
         ARGS_ASSERT(isolate, info[0]->IsNumber())
-        info.GetReturnValue().Set(Point2::New(isolate, ray.point(info[0]->NumberValue())));
+        info.GetReturnValue().Set(Point2::New(isolate, ray.point(info[0]->NumberValue(context).ToChecked())));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -148,7 +151,7 @@ void Ray2::Direction(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Direction2::New(isolate, ray.direction()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -162,7 +165,7 @@ void Ray2::ToVector(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Vector2::New(isolate, ray.to_vector()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -176,7 +179,7 @@ void Ray2::SupportingLine(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Line2::New(isolate, ray.supporting_line()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -190,7 +193,7 @@ void Ray2::Opposite(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Ray2::New(isolate, ray.opposite()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -204,7 +207,7 @@ void Ray2::IsDegenerate(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, ray.is_degenerate()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -218,7 +221,7 @@ void Ray2::IsHorizontal(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, ray.is_horizontal()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -232,7 +235,7 @@ void Ray2::IsVertical(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, ray.is_vertical()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -248,7 +251,7 @@ void Ray2::HasOn(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, ray.has_on(point)));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -264,6 +267,6 @@ void Ray2::CollinearHasOn(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, ray.collinear_has_on(point)));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }

@@ -25,7 +25,7 @@ void Polygon2::RegisterMethods(Isolate *isolate)
     NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "area", Area);
     NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "coords", Coords);
 
-    NODE_SET_METHOD(constructorTemplate, "transform", Transform);
+    // NODE_SET_METHOD(constructorTemplate, "transform", Transform);
 }
 
 
@@ -62,7 +62,7 @@ void Polygon2::IsEqual(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, thisPoly == otherPoly));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -76,7 +76,7 @@ void Polygon2::IsSimple(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, poly.is_simple()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -90,7 +90,7 @@ void Polygon2::IsConvex(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, poly.is_convex()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -104,7 +104,7 @@ void Polygon2::Orientation(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Integer::New(isolate, poly.orientation()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -120,7 +120,7 @@ void Polygon2::OrientedSide(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Integer::New(isolate, poly.oriented_side(point)));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -136,7 +136,7 @@ void Polygon2::BoundedSide(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Integer::New(isolate, poly.bounded_side(point)));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -150,7 +150,7 @@ void Polygon2::Area(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Number::New(isolate, CGAL::to_double(poly.area())));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -176,7 +176,7 @@ void Polygon2::Transform(const FunctionCallbackInfo<Value> &info)
     info.GetReturnValue().Set(New(isolate, xpoly));
   }
   catch (const exception &e) {
-    isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+    isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
   }
 }
 
@@ -185,12 +185,13 @@ void Polygon2::Coords(const FunctionCallbackInfo<Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Polygon_2 &poly = ExtractWrapped(info.This());
     Local<Array> array = Array::New(isolate);
     Vertex_iterator it;
     uint32_t i;
     for(it=poly.vertices_begin(),i=0; it!=poly.vertices_end(); ++it,++i) {
-        array->Set(i, Point2::New(isolate, *it));
+        (void)array->Set(context, i, Point2::New(isolate, *it));
     }
     info.GetReturnValue().Set(array);
 }

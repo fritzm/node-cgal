@@ -71,7 +71,7 @@ void DoIntersect(const FunctionCallbackInfo<Value> &info)
     }
 
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 
 }
@@ -81,6 +81,7 @@ void ConvexPartition2(const FunctionCallbackInfo<Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     try {
 
@@ -98,14 +99,14 @@ void ConvexPartition2(const FunctionCallbackInfo<Value> &info)
         uint32_t i;
         list<Partition_Traits::Polygon_2>::iterator it;
         for(it=partition.begin(),i=0; it!=partition.end(); ++it,++i) {
-            array->Set(i, Polygon2::New(isolate, Polygon_2(it->vertices_begin(), it->vertices_end())));
+            (void)array->Set(context, i, Polygon2::New(isolate, Polygon_2(it->vertices_begin(), it->vertices_end())));
         }
 
         info.GetReturnValue().Set(array);
     }
 
     catch(const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 
 }
@@ -115,6 +116,7 @@ void ConvexHull2(const FunctionCallbackInfo<Value> &info)
 {
     Isolate *isolate = info.GetIsolate();
     HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     try {
 
@@ -127,14 +129,14 @@ void ConvexHull2(const FunctionCallbackInfo<Value> &info)
         uint32_t i;
         list<Point_2>::iterator it;
         for(it=hull.begin(),i=0; it!=hull.end(); ++it,++i) {
-            array->Set(i, Point2::New(isolate, *it));
+            (void)array->Set(context, i, Point2::New(isolate, *it));
         }
 
         info.GetReturnValue().Set(array);
     }
 
     catch(const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 
 }
@@ -157,7 +159,7 @@ void Collinear(const FunctionCallbackInfo<Value> &info)
     }
 
     catch(const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 
 }

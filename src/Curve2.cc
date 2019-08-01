@@ -77,7 +77,7 @@ void Curve2::IsSegment(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, curve.is_segment()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -91,7 +91,7 @@ void Curve2::Segment(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Segment2::New(isolate, curve.segment()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -105,7 +105,7 @@ void Curve2::IsRay(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, curve.is_ray()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -119,7 +119,7 @@ void Curve2::Ray(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Ray2::New(isolate, curve.ray()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -133,7 +133,7 @@ void Curve2::IsLine(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Boolean::New(isolate, curve.is_line()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -147,7 +147,7 @@ void Curve2::Line(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Line2::New(isolate, curve.line()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -161,7 +161,7 @@ void Curve2::SupportingLine(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Line2::New(isolate, curve.supporting_line()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -175,7 +175,7 @@ void Curve2::Source(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Point2::New(isolate, curve.source()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
 
@@ -189,6 +189,6 @@ void Curve2::Target(const FunctionCallbackInfo<Value> &info)
         info.GetReturnValue().Set(Point2::New(isolate, curve.target()));
     }
     catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what()));
+        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
     }
 }
