@@ -1,15 +1,10 @@
-sudo: required
+sudo: true
 dist: bionic
 language: node_js
 node_js:
   - 12
-addons:
-  apt:
-    packages:
-    - libgmp-dev
-    - libmpfr-dev
-    - libboost-all-dev
 before_install:
+  - sudo apt-get install -y libgmp-dev libmpfr-dev libboost-all-dev
   - curl -L https://github.com/CGAL/cgal/archive/releases/CGAL-4.14.tar.gz | tar zx
   - mkdir $TRAVIS_BUILD_DIR/cgal-releases-CGAL-4.14/build
   - mkdir $TRAVIS_BUILD_DIR/cgal-releases-CGAL-4.14/installed
