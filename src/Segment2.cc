@@ -52,8 +52,8 @@ Local<Value> Segment2::ToPOD(Isolate *isolate, const Segment_2 &segment, bool pr
     EscapableHandleScope scope(isolate);
     Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    (void)obj->Set(context, SYMBOL(isolate, "source"), Point2::ToPOD(isolate, segment.source(), precise));
-    (void)obj->Set(context, SYMBOL(isolate, "target"), Point2::ToPOD(isolate, segment.target(), precise));
+    obj->Set(context, SYMBOL(isolate, "source"), Point2::ToPOD(isolate, segment.source(), precise));
+    obj->Set(context, SYMBOL(isolate, "target"), Point2::ToPOD(isolate, segment.target(), precise));
     return scope.Escape(obj);
 }
 

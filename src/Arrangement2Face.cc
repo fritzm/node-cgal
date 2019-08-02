@@ -115,7 +115,7 @@ void Arrangement2Face::OuterCCB(const v8::FunctionCallbackInfo<v8::Value> &info)
             first = curr = face->outer_ccb();
             uint32_t i = 0;
             do {
-                (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
+                array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
             } while(++i,++curr != first);
         }
         info.GetReturnValue().Set(scope.Escape(array));
@@ -138,12 +138,12 @@ void Arrangement2Face::Holes(const v8::FunctionCallbackInfo<v8::Value> &info)
         uint32_t i;
         for(it=face->holes_begin(),i=0; it!=face->holes_end(); ++it,++i) {
             Local<Array> hole = Array::New(isolate);
-            (void)array->Set(context, i, hole);
+            array->Set(context, i, hole);
             Arrangement_2::Ccb_halfedge_circulator first, curr;
             first = curr = *it;
             uint32_t j = 0;
             do {
-                (void)hole->Set(context, j, Arrangement2Halfedge::New(isolate, curr));
+                hole->Set(context, j, Arrangement2Halfedge::New(isolate, curr));
             } while(++j,++curr != first);
         }
         info.GetReturnValue().Set(scope.Escape(array));
@@ -165,7 +165,7 @@ void Arrangement2Face::IsolatedVertices(const v8::FunctionCallbackInfo<v8::Value
         Arrangement_2::Isolated_vertex_iterator it;
         uint32_t i;
         for(it=face->isolated_vertices_begin(),i=0; it!=face->isolated_vertices_end(); ++it,++i) {
-            (void)array->Set(context, i, Arrangement2Vertex::New(isolate, it));
+            array->Set(context, i, Arrangement2Vertex::New(isolate, it));
         }
         info.GetReturnValue().Set(scope.Escape(array));
     }

@@ -141,7 +141,7 @@ void Arrangement2Vertex::IncidentHalfedges(const FunctionCallbackInfo<Value> &in
         first = curr = vertex->incident_halfedges();
         uint32_t i = 0;
         do {
-            (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
+            array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
         } while(++i,++curr != first);
         info.GetReturnValue().Set(array);
     }

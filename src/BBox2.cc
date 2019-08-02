@@ -56,10 +56,10 @@ Local<Value> BBox2::ToPOD(Isolate *isolate, const Bbox_2 &box, bool precise)
     EscapableHandleScope scope(isolate);
     Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    (void)obj->Set(context, SYMBOL(isolate, "xmin"), Number::New(isolate, box.xmin()));
-    (void)obj->Set(context, SYMBOL(isolate, "ymin"), Number::New(isolate, box.ymin()));
-    (void)obj->Set(context, SYMBOL(isolate, "xmax"), Number::New(isolate, box.xmax()));
-    (void)obj->Set(context, SYMBOL(isolate, "ymax"), Number::New(isolate, box.ymax()));
+    obj->Set(context, SYMBOL(isolate, "xmin"), Number::New(isolate, box.xmin()));
+    obj->Set(context, SYMBOL(isolate, "ymin"), Number::New(isolate, box.ymin()));
+    obj->Set(context, SYMBOL(isolate, "xmax"), Number::New(isolate, box.xmax()));
+    obj->Set(context, SYMBOL(isolate, "ymax"), Number::New(isolate, box.ymax()));
     return scope.Escape(obj);
 }
 

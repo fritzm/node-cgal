@@ -87,9 +87,9 @@ Local<Value> AffTransformation2::ToPOD(Isolate *isolate, const Aff_transformatio
 #else
                 str << a;
 #endif
-                (void)array->Set(context, i, String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+                array->Set(context, i, String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
             } else {
-                (void)array->Set(context, i, Number::New(isolate, CGAL::to_double(a)));
+                array->Set(context, i, Number::New(isolate, CGAL::to_double(a)));
             }
         }
     }

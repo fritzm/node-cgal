@@ -191,7 +191,7 @@ void Polygon2::Coords(const FunctionCallbackInfo<Value> &info)
     Vertex_iterator it;
     uint32_t i;
     for(it=poly.vertices_begin(),i=0; it!=poly.vertices_end(); ++it,++i) {
-        (void)array->Set(context, i, Point2::New(isolate, *it));
+        array->Set(context, i, Point2::New(isolate, *it));
     }
     info.GetReturnValue().Set(array);
 }

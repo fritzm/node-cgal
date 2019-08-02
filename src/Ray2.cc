@@ -89,8 +89,8 @@ Local<Value> Ray2::ToPOD(Isolate *isolate, const Ray_2 &ray, bool precise)
     EscapableHandleScope scope(isolate);
     Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    (void)obj->Set(context, SYMBOL(isolate, "p"), Point2::ToPOD(isolate, ray.source(), precise));
-    (void)obj->Set(context, SYMBOL(isolate, "d"), Direction2::ToPOD(isolate, ray.direction(), precise));
+    obj->Set(context, SYMBOL(isolate, "p"), Point2::ToPOD(isolate, ray.source(), precise));
+    obj->Set(context, SYMBOL(isolate, "d"), Direction2::ToPOD(isolate, ray.direction(), precise));
     return scope.Escape(obj);
 }
 

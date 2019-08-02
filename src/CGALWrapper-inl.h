@@ -53,7 +53,7 @@ void CGALWrapper<WrapperClass, CGALClass>::Init(v8::Local<ParentScope> exports)
 
     }
 
-    (void)exports->Set(
+    exports->Set(
         context,
         v8::String::NewFromUtf8(isolate, WrapperClass::Name, v8::NewStringType::kInternalized).ToLocalChecked(),
         sConstructorTemplate.Get(isolate)->GetFunction(context).ToLocalChecked()
@@ -106,7 +106,7 @@ v8::Local<v8::Value> CGALWrapper<WrapperClass, CGALClass>::SeqToPOD(
     ForwardIterator it;
     uint32_t i;
     for(it=first,i=0; it!=last; ++it,++i) {
-        (void)array->Set(context, i, WrapperClass::ToPOD(isolate, *it, precise));
+        array->Set(context, i, WrapperClass::ToPOD(isolate, *it, precise));
     }
     return scope.Escape(array);
 }

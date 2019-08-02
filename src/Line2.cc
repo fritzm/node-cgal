@@ -72,7 +72,7 @@ Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 #else
         astr << setprecision(20) << line.a();
 #endif
-        (void)obj->Set(context, SYMBOL(isolate, "a"), String::NewFromUtf8(isolate, astr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj->Set(context, SYMBOL(isolate, "a"), String::NewFromUtf8(isolate, astr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream bstr;
 #if CGAL_USE_EPECK
@@ -80,7 +80,7 @@ Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 #else
         bstr << setprecision(20) << line.b();
 #endif
-        (void)obj->Set(context, SYMBOL(isolate, "b"), String::NewFromUtf8(isolate, bstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj->Set(context, SYMBOL(isolate, "b"), String::NewFromUtf8(isolate, bstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream cstr;
 #if CGAL_USE_EPECK
@@ -88,13 +88,13 @@ Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 #else
         cstr << setprecision(20) << line.c();
 #endif
-        (void)obj->Set(context, SYMBOL(isolate, "c"), String::NewFromUtf8(isolate, cstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj->Set(context, SYMBOL(isolate, "c"), String::NewFromUtf8(isolate, cstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
 
-        (void)obj->Set(context, SYMBOL(isolate, "a"), Number::New(isolate, CGAL::to_double(line.a())));
-        (void)obj->Set(context, SYMBOL(isolate, "b"), Number::New(isolate, CGAL::to_double(line.b())));
-        (void)obj->Set(context, SYMBOL(isolate, "c"), Number::New(isolate, CGAL::to_double(line.c())));
+        obj->Set(context, SYMBOL(isolate, "a"), Number::New(isolate, CGAL::to_double(line.a())));
+        obj->Set(context, SYMBOL(isolate, "b"), Number::New(isolate, CGAL::to_double(line.b())));
+        obj->Set(context, SYMBOL(isolate, "c"), Number::New(isolate, CGAL::to_double(line.c())));
 
     }
 

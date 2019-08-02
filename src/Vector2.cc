@@ -77,7 +77,7 @@ Local<Value> Vector2::ToPOD(Isolate *isolate, const Vector_2 &vector, bool preci
 #else
         xstr << setprecision(20) << vector.x();
 #endif
-        (void)obj->Set(context, SYMBOL(isolate, "x"), String::NewFromUtf8(isolate, xstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj->Set(context, SYMBOL(isolate, "x"), String::NewFromUtf8(isolate, xstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream ystr;
 #if CGAL_USE_EPECK
@@ -85,11 +85,11 @@ Local<Value> Vector2::ToPOD(Isolate *isolate, const Vector_2 &vector, bool preci
 #else
         ystr << setprecision(20) << vector.y();
 #endif
-        (void)obj->Set(context, SYMBOL(isolate, "y"), String::NewFromUtf8(isolate, ystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj->Set(context, SYMBOL(isolate, "y"), String::NewFromUtf8(isolate, ystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
-        (void)obj->Set(context, SYMBOL(isolate, "x"), Number::New(isolate, CGAL::to_double(vector.x())));
-        (void)obj->Set(context, SYMBOL(isolate, "y"), Number::New(isolate, CGAL::to_double(vector.y())));
+        obj->Set(context, SYMBOL(isolate, "x"), Number::New(isolate, CGAL::to_double(vector.x())));
+        obj->Set(context, SYMBOL(isolate, "y"), Number::New(isolate, CGAL::to_double(vector.y())));
     }
 
     return scope.Escape(obj);

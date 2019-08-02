@@ -63,7 +63,7 @@ Local<Value> Point2::ToPOD(Isolate *isolate, const Point_2 &point, bool precise)
 #else
         x_str << setprecision(20) << point.x();
 #endif
-        (void)array->Set(context, 0, String::NewFromUtf8(isolate, x_str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        array->Set(context, 0, String::NewFromUtf8(isolate, x_str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream y_str;
 #if CGAL_USE_EPECK
@@ -71,11 +71,11 @@ Local<Value> Point2::ToPOD(Isolate *isolate, const Point_2 &point, bool precise)
 #else
         y_str << setprecision(20) << point.y();
 #endif
-        (void)array->Set(context, 1, String::NewFromUtf8(isolate, y_str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        array->Set(context, 1, String::NewFromUtf8(isolate, y_str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
-        (void)array->Set(context, 0, Number::New(isolate, CGAL::to_double(point.cartesian(0))));
-        (void)array->Set(context, 1, Number::New(isolate, CGAL::to_double(point.cartesian(1))));
+        array->Set(context, 0, Number::New(isolate, CGAL::to_double(point.cartesian(0))));
+        array->Set(context, 1, Number::New(isolate, CGAL::to_double(point.cartesian(1))));
     }
 
     return scope.Escape(array);

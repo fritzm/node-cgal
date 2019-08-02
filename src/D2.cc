@@ -99,7 +99,7 @@ void ConvexPartition2(const FunctionCallbackInfo<Value> &info)
         uint32_t i;
         list<Partition_Traits::Polygon_2>::iterator it;
         for(it=partition.begin(),i=0; it!=partition.end(); ++it,++i) {
-            (void)array->Set(context, i, Polygon2::New(isolate, Polygon_2(it->vertices_begin(), it->vertices_end())));
+            array->Set(context, i, Polygon2::New(isolate, Polygon_2(it->vertices_begin(), it->vertices_end())));
         }
 
         info.GetReturnValue().Set(array);
@@ -129,7 +129,7 @@ void ConvexHull2(const FunctionCallbackInfo<Value> &info)
         uint32_t i;
         list<Point_2>::iterator it;
         for(it=hull.begin(),i=0; it!=hull.end(); ++it,++i) {
-            (void)array->Set(context, i, Point2::New(isolate, *it));
+            array->Set(context, i, Point2::New(isolate, *it));
         }
 
         info.GetReturnValue().Set(array);

@@ -60,8 +60,8 @@ Local<Value> PolygonWithHoles2::ToPOD(Isolate *isolate, const Polygon_with_holes
     EscapableHandleScope scope(isolate);
     Local<Context> context = isolate->GetCurrentContext();
     Local<Object> obj = Object::New(isolate);
-    (void)obj->Set(context, SYMBOL(isolate, "outer"), Polygon2::ToPOD(isolate, poly.outer_boundary(), precise));
-    (void)obj->Set(context, SYMBOL(isolate, "holes"), Polygon2::SeqToPOD(isolate, poly.holes_begin(), poly.holes_end(), precise));
+    obj->Set(context, SYMBOL(isolate, "outer"), Polygon2::ToPOD(isolate, poly.outer_boundary(), precise));
+    obj->Set(context, SYMBOL(isolate, "holes"), Polygon2::SeqToPOD(isolate, poly.holes_begin(), poly.holes_end(), precise));
     return scope.Escape(obj);
 }
 
@@ -107,7 +107,7 @@ void PolygonWithHoles2::Holes(const FunctionCallbackInfo<Value> &info)
         uint32_t i;
         Polygon_with_holes_2::Hole_const_iterator it;
         for(it=poly.holes_begin(),i=0; it!=poly.holes_end(); ++it,++i) {
-            (void)array->Set(context, i, Polygon2::New(isolate, *it));
+            array->Set(context, i, Polygon2::New(isolate, *it));
         }
         info.GetReturnValue().Set(array);
     }

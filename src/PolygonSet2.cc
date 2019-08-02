@@ -86,7 +86,7 @@ void PolygonSet2::PolygonsWithHoles(const FunctionCallbackInfo<Value> &info)
         uint32_t i;
         vector<Polygon_with_holes_2>::iterator it;
         for(it=pwhs.begin(),i=0; it!=pwhs.end(); ++it,++i) {
-            (void)array->Set(context, i, PolygonWithHoles2::New(isolate, *it));
+            array->Set(context, i, PolygonWithHoles2::New(isolate, *it));
         }
         info.GetReturnValue().Set(array);
     }

@@ -35,6 +35,7 @@
                     'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                     'GCC_ENABLE_CPP_RTTI': 'YES',
                     'OTHER_CPLUSPLUSFLAGS': [
+                        '-Wno-unused-result',
                         '-Wno-null-pointer-arithmetic',
                         '<!@(echo $CGAL_GYP_CXXFLAGS)'
                      ],
@@ -46,6 +47,7 @@
                 'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ],
                 'cflags_cc': [
                     '-frounding-math',
+                    '-Wno-unused-result'
                     '<!@(echo $CGAL_GYP_CXXFLAGS)'
                 ],
                 'libraries': [ '-lCGAL', '-lgmp', '-lmpfr', '-lboost_thread' ],

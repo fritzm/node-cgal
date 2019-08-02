@@ -75,17 +75,17 @@ Local<Value> Arrangement2::ToPOD(Isolate *isolate, const Arrangement_2 &arrangem
     Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> obj = Object::New(isolate);
-    (void)obj->Set(context, SYMBOL(isolate, "numFaces"),
+    obj->Set(context, SYMBOL(isolate, "numFaces"),
         Number::New(isolate, arrangement.number_of_faces()));
-    (void)obj->Set(context, SYMBOL(isolate, "numUnboundedFaces"),
+    obj->Set(context, SYMBOL(isolate, "numUnboundedFaces"),
         Number::New(isolate, arrangement.number_of_unbounded_faces()));
-    (void)obj->Set(context, SYMBOL(isolate, "numBoundedFaces"),
+    obj->Set(context, SYMBOL(isolate, "numBoundedFaces"),
         Number::New(isolate, arrangement.number_of_faces()-arrangement.number_of_unbounded_faces()));
-    (void)obj->Set(context, SYMBOL(isolate, "numVertices"),
+    obj->Set(context, SYMBOL(isolate, "numVertices"),
         Number::New(isolate, arrangement.number_of_vertices()));
 
     Local<Array> faceArray = Array::New(isolate);
-    (void)obj->Set(context, SYMBOL(isolate, "boundedFaces"), faceArray);
+    obj->Set(context, SYMBOL(isolate, "boundedFaces"), faceArray);
 
     // POD-ify arrangement faces and assign to array within object.
     Arrangement_2::Face_const_iterator fit;
@@ -102,7 +102,7 @@ Local<Value> Arrangement2::ToPOD(Isolate *isolate, const Arrangement_2 &arrangem
             do { *bit++  = curr->source()->point(); } while (++curr != circ);
 
             // Add poly created from edge source points to face array.
-            (void)faceArray->Set(context, faceNum, Polygon2::ToPOD(isolate, poly, precise));
+            faceArray->Set(context, faceNum, Polygon2::ToPOD(isolate, poly, precise));
             faceNum++;
         }
     }
@@ -272,7 +272,7 @@ void Arrangement2::Vertices(const FunctionCallbackInfo<Value> &info)
         Arrangement_2::Vertex_iterator it;
         uint32_t i;
         for(it=arrangement.vertices_begin(),i=0; it!=arrangement.vertices_end(); ++it,++i) {
-            (void)array->Set(context, i, Arrangement2Vertex::New(isolate, it));
+            array->Set(context, i, Arrangement2Vertex::New(isolate, it));
         }
         info.GetReturnValue().Set(array);
     }
@@ -335,7 +335,7 @@ void Arrangement2::Faces(const FunctionCallbackInfo<Value> &info)
         Arrangement_2::Face_iterator it;
         uint32_t i;
         for(it=arrangement.faces_begin(),i=0; it!=arrangement.faces_end(); ++it,++i) {
-            (void)array->Set(context, i, Arrangement2Face::New(isolate, it));
+            array->Set(context, i, Arrangement2Face::New(isolate, it));
         }
         info.GetReturnValue().Set(array);
     }
@@ -370,7 +370,7 @@ void Arrangement2::UnboundedFaces(const FunctionCallbackInfo<Value> &info)
         Arrangement_2::Face_iterator it;
         uint32_t i;
         for(it=arrangement.unbounded_faces_begin(),i=0; it!=arrangement.unbounded_faces_end(); ++it,++i) {
-            (void)array->Set(context, i, Arrangement2Face::New(isolate, it));
+            array->Set(context, i, Arrangement2Face::New(isolate, it));
         }
         info.GetReturnValue().Set(array);
     }
@@ -419,7 +419,7 @@ void Arrangement2::Halfedges(const FunctionCallbackInfo<Value> &info)
         Arrangement_2::Halfedge_iterator it;
         uint32_t i;
         for(it=arrangement.halfedges_begin(),i=0; it!=arrangement.halfedges_end(); ++it,++i) {
-            (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, it));
+            array->Set(context, i, Arrangement2Halfedge::New(isolate, it));
         }
         info.GetReturnValue().Set(array);
     }
@@ -454,7 +454,7 @@ void Arrangement2::Edges(const FunctionCallbackInfo<Value> &info)
         Arrangement_2::Halfedge_iterator it;
         uint32_t i;
         for(it=arrangement.edges_begin(),i=0; it!=arrangement.edges_end(); ++it,++i) {
-            (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, it));
+            array->Set(context, i, Arrangement2Halfedge::New(isolate, it));
         }
         info.GetReturnValue().Set(array);
     }

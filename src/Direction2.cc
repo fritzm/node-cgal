@@ -94,7 +94,7 @@ Local<Value> Direction2::ToPOD(Isolate *isolate, const Direction_2 &direction, b
 #else
         dxstr << setprecision(20) << direction.dx();
 #endif
-        (void)obj->Set(context, SYMBOL(isolate, "dx"), String::NewFromUtf8(isolate, dxstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj->Set(context, SYMBOL(isolate, "dx"), String::NewFromUtf8(isolate, dxstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
         ostringstream dystr;
 #if CGAL_USE_EPECK
@@ -102,12 +102,12 @@ Local<Value> Direction2::ToPOD(Isolate *isolate, const Direction_2 &direction, b
 #else
         dystr << setprecision(20) << direction.dy();
 #endif
-        (void)obj->Set(context, SYMBOL(isolate, "dy"), String::NewFromUtf8(isolate, dystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj->Set(context, SYMBOL(isolate, "dy"), String::NewFromUtf8(isolate, dystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
 
     } else {
 
-        (void)obj->Set(context, SYMBOL(isolate, "dx"), Number::New(isolate, CGAL::to_double(direction.dx())));
-        (void)obj->Set(context, SYMBOL(isolate, "dy"), Number::New(isolate, CGAL::to_double(direction.dy())));
+        obj->Set(context, SYMBOL(isolate, "dx"), Number::New(isolate, CGAL::to_double(direction.dx())));
+        obj->Set(context, SYMBOL(isolate, "dy"), Number::New(isolate, CGAL::to_double(direction.dy())));
 
     }
 

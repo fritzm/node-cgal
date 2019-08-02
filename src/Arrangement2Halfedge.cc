@@ -174,7 +174,7 @@ void Arrangement2Halfedge::CCB(const FunctionCallbackInfo<Value> &info)
         first = curr = edge->ccb();
         uint32_t i = 0;
         do {
-            (void)array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
+            array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
         } while(++i,++curr != first);
         info.GetReturnValue().Set(array);
     }
