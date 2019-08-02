@@ -47,7 +47,8 @@
                 'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ],
                 'cflags_cc': [
                     '-frounding-math',
-                    '-Wno-unused-result'
+                    '-Wno-unused-result',
+                    '-Wno-cast-function-type',
                     '<!@(echo $CGAL_GYP_CXXFLAGS)'
                 ],
                 'libraries': [ '-lCGAL', '-lgmp', '-lmpfr', '-lboost_thread' ],
