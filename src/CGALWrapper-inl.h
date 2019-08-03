@@ -6,6 +6,14 @@
 #include <sstream>
 
 
+template<typename ParentScope> 
+void SetConstructor(
+    v8::Local<ParentScope> parentScope,
+    v8::Local<v8::String> name,
+    v8::Local<v8::FunctionTemplate> constructor
+);
+
+
 template<typename WrapperClass, typename CGALClass>
 v8::Global<v8::FunctionTemplate> CGALWrapper<WrapperClass, CGALClass>::sConstructorTemplate;
 
@@ -28,7 +36,6 @@ void CGALWrapper<WrapperClass, CGALClass>::Init(v8::Local<ParentScope> exports)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::HandleScope scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     // In some circumstances, our module init gets called more than once within the same process by
     // node.  We need to be careful to avoid re-initializing our static constructor template,
@@ -53,10 +60,10 @@ void CGALWrapper<WrapperClass, CGALClass>::Init(v8::Local<ParentScope> exports)
 
     }
 
-    exports->Set(
-        context,
+    SetConstructor(
+        exports,
         v8::String::NewFromUtf8(isolate, WrapperClass::Name, v8::NewStringType::kInternalized).ToLocalChecked(),
-        sConstructorTemplate.Get(isolate)->GetFunction(context).ToLocalChecked()
+        sConstructorTemplate.Get(isolate)
     );
 }
 

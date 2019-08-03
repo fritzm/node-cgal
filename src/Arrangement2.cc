@@ -52,9 +52,9 @@ void Arrangement2::RegisterMethods(Isolate *isolate)
     NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "removeEdge", RemoveEdge);
     NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "removeEdgeAndMerge", RemoveEdgeAndMerge);
 
-//    Arrangement2Face::Init(constructorTemplate);
-//    Arrangement2Halfedge::Init(constructorTemplate);
-//    Arrangement2Vertex::Init(constructorTemplate);
+    Arrangement2Face::Init(constructorTemplate);
+    Arrangement2Halfedge::Init(constructorTemplate);
+    Arrangement2Vertex::Init(constructorTemplate);
 }
 
 

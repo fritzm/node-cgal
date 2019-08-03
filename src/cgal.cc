@@ -106,6 +106,29 @@ void init(Local<Object> exports)
 }
 
 
+template<>
+void SetConstructor<Object>(
+    Local<Object> parentScope,
+    Local<String> name,
+    Local<FunctionTemplate> constructor)
+{
+    Isolate *isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
+    parentScope->Set(context, name, constructor->GetFunction(context).ToLocalChecked());
+}
+
+
+template<>
+void SetConstructor<FunctionTemplate>(
+    Local<FunctionTemplate> parentScope,
+    Local<String> name,
+    Local<FunctionTemplate> constructor)
+{
+    parentScope->Set(name, constructor);
+}
+
+
 NODE_MODULE(cgal, init);
 
 
