@@ -9,12 +9,8 @@
   ],
   "private": true,
   "repository": {},
-  "devDependencies": {
-    "jasmine-node": "^3.0.0"
-  },
   "scripts": {
-    "test": "scripts/test",
-    "clean": "node-gyp clean && rm -rf build"
+    "test": "jasmine --reporter=jasmine-console-reporter"
   },
   "engines": {
     "node": ">=12.0.0"
@@ -25,5 +21,9 @@
   ],
   "cpu": [
     "x64"
-  ]
+  ],
+  "devDependencies": {
+    "jasmine": "^3.4.0",
+    "jasmine-console-reporter": "^3.1.0"
+  }
 }
