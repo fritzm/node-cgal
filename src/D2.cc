@@ -1,15 +1,12 @@
 #include "D2.h"
 #include "cgal_args.h"
 #include "cgal_types.h"
-#include "node.h"
-#include "v8.h"
 #include "AffTransformation2.h"
 #include "Point2.h"
 #include "Polygon2.h"
 #include "PolygonWithHoles2.h"
 #include "CGAL/Boolean_set_operations_2.h"
 
-using namespace v8;
 using namespace std;
 
 

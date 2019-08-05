@@ -1,8 +1,7 @@
 #ifndef D2_H
 #define D2_H
 
-#include "node.h"
-#include "v8.h"
+#include "napi.h"
 #include "cgal_types.h"
 #include "CGAL/convex_hull_2.h"
 
