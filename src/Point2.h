@@ -3,40 +3,41 @@
 
 #include "CGALWrapper.h"
 #include "cgal_types.h"
-#include "v8.h"
-
+#include "napi.h"
 
 class Point2 : public CGALWrapper<Point2, Point_2>
 {
 public:
 
+    Point2(Napi::CallbackInfo const& info);
+
     // The name to be used for our JS class.
     static const char *Name;
 
-    // Add our function templates to the package exports, and return string to be used to name
-    // the class and constructor in JS.  Called indirectly at module load time via the module
+    // Add our property descriptors (instance and static methods and values) to the list that will
+    // be used to define our JS class.  Called indirectly at module load time via the module
     // init function.
-    static void RegisterMethods(v8::Isolate *isolate);
+    static void AddProperties(std::vector<PropertyDescriptor>& properties);
 
-    // Attempt to parse a v8 argument into the CGAL object referred to by receiver.  Returns true
+    // Attempt to parse a JS argument into the CGAL object referred to by receiver. Returns true
     // if parse was successful, false otherwise.
-    static bool ParseArg(v8::Isolate *Isolate, v8::Local<v8::Value> arg, Point_2 &receiver);
+    static bool ParseArg(Napi::Env env, Napi::Value arg, Point_2& receiver);
 
-    // Convert a CGAL object of the wrapped class to a POD v8 object.  If precise is set to false,
-    // will attempt to render in terms of doubles for coordinates, and may lose precision.
-    static v8::Local<v8::Value> ToPOD(v8::Isolate *isolate, const Point_2 &point, bool precise=true);
+    // Convert our wrapped CGAL object to a POD JS object. If precise is set to false,
+    // attempt to render in terms of doubles for coordinates, which may lose precision.
+    Napi::Value ToPOD(Napi::Env env, bool precise);
 
 private:
 
     //
-    //----- The following methods will be callable from JS.  These will mostly match
-    //      the semantics and names of CGAL::Point_2 methods.
+    //----- The following methods will be callable from JS. These will mostly match
+    //      the semantics and names of the wrapped CGAL class.
     //
 
-    static void IsEqual(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void X(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Y(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Transform(const v8::FunctionCallbackInfo<v8::Value> &info);
+    Napi::Value IsEqual(Napi::CallbackInfo const& info);
+    Napi::Value X(Napi::CallbackInfo const& info);
+    Napi::Value Y(Napi::CallbackInfo const& info);
+    // Napi::Value Transform(Napi::CallbackInfo const& info);
 
 };
 

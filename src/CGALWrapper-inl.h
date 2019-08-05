@@ -62,6 +62,23 @@ Napi::Object CGALWrapper<WrapperClass, CGALClass>::New(Napi::Env env, const CGAL
 }
 
 
+template<typename NumberPrimitive>
+bool ParseArg(Napi::Env env, Napi::Value arg, NumberPrimitive& parsed)
+{
+    if (arg.IsNumber()) {
+        parsed = NumberPrimitive(arg.As<Napi::Number>());
+        return true;
+    } else if (arg.IsString()) {
+        std::istringstream str(arg.As<Napi::String>());
+        str >> parsed;
+        return !str.fail();
+    } else {
+        return false;
+    }
+    return false;
+}
+
+
 template<typename WrapperClass, typename CGALClass>
 template<typename ForwardIterator>
 Napi::Value CGALWrapper<WrapperClass, CGALClass>::SeqToPOD(
@@ -110,7 +127,7 @@ Napi::Value CGALWrapper<WrapperClass, CGALClass>::ToPOD(Napi::CallbackInfo const
     bool precise = true;
     if (info.Length() == 1) {
         ARGS_ASSERT(env, info[0].IsBoolean())
-        precise = info[0].As<Napi::Boolean>().Value();
+        precise = info[0].As<Napi::Boolean>();
     }
 
     return static_cast<WrapperClass*>(this)->ToPOD(env, precise);

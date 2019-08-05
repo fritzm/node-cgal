@@ -32,11 +32,11 @@ describe("CGAL.Point2", function() {
         expect(p.x()).toEqual(q.x());
      });
 
-    it("should be transformable", function() {
-        var p = new CGAL.Point2([1,2]);
-        var q = p.transform([1, 0, 3, 0, 1, 3]);
-        expect(q instanceof CGAL.Point2).toBeTruthy();
-        expect(q.x()).toEqual(4);
-        expect(q.y()).toEqual(5);
-    });
+    // it("should be transformable", function() {
+    //     var p = new CGAL.Point2([1,2]);
+    //     var q = p.transform([1, 0, 3, 0, 1, 3]);
+    //     expect(q instanceof CGAL.Point2).toBeTruthy();
+    //     expect(q.x()).toEqual(4);
+    //     expect(q.y()).toEqual(5);
+    // });
 });

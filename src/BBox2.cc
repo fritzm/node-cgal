@@ -39,10 +39,10 @@ bool BBox2::ParseArg(Napi::Env env, Napi::Value arg, Bbox_2& receiver)
             obj.Get("ymax").IsNumber())
         {
             receiver = Bbox_2(
-                obj.Get("xmin").As<Napi::Number>().DoubleValue(),
-                obj.Get("ymin").As<Napi::Number>().DoubleValue(),
-                obj.Get("xmax").As<Napi::Number>().DoubleValue(),
-                obj.Get("ymax").As<Napi::Number>().DoubleValue()
+                obj.Get("xmin").As<Napi::Number>(),
+                obj.Get("ymin").As<Napi::Number>(),
+                obj.Get("xmax").As<Napi::Number>(),
+                obj.Get("ymax").As<Napi::Number>()
             );
             return true;
         }
