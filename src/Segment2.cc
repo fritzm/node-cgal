@@ -2,85 +2,67 @@
 #include "Point2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
+
 using namespace std;
+
+
+Segment2::Segment2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *Segment2::Name = "Segment2";
 
 
-void Segment2::RegisterMethods(Isolate *isolate)
+void Segment2::AddProperties(vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isVertical", IsVertical);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isHorizontal", IsHorizontal);
+    properties.insert(properties.end(), {
+        InstanceMethod("isHorizontal", &Segment2::IsHorizontal),
+        InstanceMethod("isVertical", &Segment2::IsVertical)
+    });
 }
 
 
-bool Segment2::ParseArg(Isolate *isolate, Local<Value> arg, Segment_2 &receiver)
+bool Segment2::ParseArg(Napi::Env env, Napi::Value arg, Segment_2& receiver)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
+    if (arg.IsObject()) {
+        Napi::Object obj = arg.As<Napi::Object>();
 
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
-        return true;
-    }
-
-    if (arg->IsObject()) {
-        Local<Object> ends = Local<Object>::Cast(arg);
+        if (obj.InstanceOf(sConstructor.Value())) {
+            receiver = Unwrap(obj)->mWrapped;
+            return true;
+        }
 
         Point_2 source, target;
-
-        if (Point2::ParseArg(isolate, ends->Get(context, SYMBOL(isolate, "source")).ToLocalChecked(), source) &&
-            Point2::ParseArg(isolate, ends->Get(context, SYMBOL(isolate, "target")).ToLocalChecked(), target))
+        if (Point2::ParseArg(env, obj["source"], source) &&
+            Point2::ParseArg(env, obj["target"], target))
         {
             receiver = Segment_2(source, target);
             return true;
         }
-
     }
 
     return false;
 }
 
 
-Local<Value> Segment2::ToPOD(Isolate *isolate, const Segment_2 &segment, bool precise)
+Napi::Value Segment2::ToPOD(Napi::Env env, Segment_2 const& segment, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Object> obj = Object::New(isolate);
-    obj->Set(context, SYMBOL(isolate, "source"), Point2::ToPOD(isolate, segment.source(), precise));
-    obj->Set(context, SYMBOL(isolate, "target"), Point2::ToPOD(isolate, segment.target(), precise));
-    return scope.Escape(obj);
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set("source", Point2::ToPOD(env, segment.source(), precise));
+    obj.Set("target", Point2::ToPOD(env, segment.target(), precise));
+    return obj;
 }
 
 
-void Segment2::IsHorizontal(const FunctionCallbackInfo<Value> &info)
+Napi::Value Segment2::IsHorizontal(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Segment_2 &segment = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, segment.is_horizontal()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Value::From(info.Env(), mWrapped.is_horizontal());
 }
 
 
-void Segment2::IsVertical(const FunctionCallbackInfo<Value> &info)
+Napi::Value Segment2::IsVertical(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Segment_2 &segment = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, segment.is_vertical()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Value::From(info.Env(), mWrapped.is_vertical());
 }

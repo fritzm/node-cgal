@@ -62,11 +62,11 @@ Napi::Object CGALWrapper<WrapperClass, CGALClass>::New(Napi::Env env, const CGAL
 }
 
 
-template<typename NumberPrimitive>
-bool ParseArg(Napi::Env env, Napi::Value arg, NumberPrimitive& parsed)
+template<typename NumberType>
+bool ParseNumberArg(Napi::Env env, Napi::Value arg, NumberType& parsed)
 {
     if (arg.IsNumber()) {
-        parsed = NumberPrimitive(arg.As<Napi::Number>());
+        parsed = arg.As<Napi::Number>();
         return true;
     } else if (arg.IsString()) {
         std::istringstream str(arg.As<Napi::String>());
@@ -130,7 +130,7 @@ Napi::Value CGALWrapper<WrapperClass, CGALClass>::ToPOD(Napi::CallbackInfo const
         precise = info[0].As<Napi::Boolean>();
     }
 
-    return static_cast<WrapperClass*>(this)->ToPOD(env, precise);
+    return WrapperClass::ToPOD(env, mWrapped, precise);
 }
 
 

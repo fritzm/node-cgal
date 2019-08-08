@@ -5,6 +5,8 @@
 #include "cgal_types.h"
 #include "napi.h"
 
+#include <vector>
+
 class Point2 : public CGALWrapper<Point2, Point_2>
 {
 public:
@@ -23,9 +25,9 @@ public:
     // if parse was successful, false otherwise.
     static bool ParseArg(Napi::Env env, Napi::Value arg, Point_2& receiver);
 
-    // Convert our wrapped CGAL object to a POD JS object. If precise is set to false,
-    // attempt to render in terms of doubles for coordinates, which may lose precision.
-    Napi::Value ToPOD(Napi::Env env, bool precise);
+    // Convert a CGAL object of the wrapped class to a POD JS object. If precise is set to false,
+    // will attempt to render in terms of doubles for coordinates, and may lose precision.
+    static Napi::Value ToPOD(Napi::Env env, Point_2 const& point, bool precise=true);
 
 private:
 

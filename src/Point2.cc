@@ -36,8 +36,8 @@ bool Point2::ParseArg(Napi::Env env, Napi::Value arg, Point_2& receiver)
     if (arg.IsArray()) {
         Napi::Array coords = arg.As<Napi::Array>();
         K::FT x, y;
-        if (::ParseArg(env, coords[0u], x) &&
-            ::ParseArg(env, coords[1], y))
+        if (::ParseNumberArg(env, coords[0u], x) &&
+            ::ParseNumberArg(env, coords[1], y))
         {
             receiver = Point_2(x, y);
             return true;
@@ -48,27 +48,27 @@ bool Point2::ParseArg(Napi::Env env, Napi::Value arg, Point_2& receiver)
 }
 
 
-Napi::Value Point2::ToPOD(Napi::Env env, bool precise)
+Napi::Value Point2::ToPOD(Napi::Env env, Point_2 const& point, bool precise)
 {
     Napi::Array array = Napi::Array::New(env, 2);
     if (precise) {
         ostringstream x_str;
 #if CGAL_USE_EPECK
-        x_str << mWrapped.x().exact();
+        x_str << point.x().exact();
 #else
-        x_str << setprecision(20) << mWrapped.x();
+        x_str << setprecision(20) << point.x();
 #endif
         array.Set(0u, x_str.str());
         ostringstream y_str;
 #if CGAL_USE_EPECK
-        y_str << mWrapped.y().exact();
+        y_str << point.y().exact();
 #else
-        y_str << setprecision(20) << mWrapped.y();
+        y_str << setprecision(20) << point.y();
 #endif
         array.Set(1, y_str.str());
     } else {
-        array.Set(0u, CGAL::to_double(mWrapped.cartesian(0)));
-        array.Set(1, CGAL::to_double(mWrapped.cartesian(1))); 
+        array.Set(0u, CGAL::to_double(point.cartesian(0)));
+        array.Set(1, CGAL::to_double(point.cartesian(1))); 
     }
 
     return array;

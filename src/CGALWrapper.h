@@ -17,8 +17,8 @@ public:
 
     static Napi::Object New(Napi::Env env, const CGALClass &CGALInstance);
 
-    template<typename NumberPrimitive>
-    static bool ParseArg(Napi::Env env, Napi::Value arg, NumberPrimitive& parsed);
+    template<typename NumberType>
+    static bool ParseNumberArg(Napi::Env env, Napi::Value arg, NumberType& parsed);
 
     template<typename OutputIterator>
     static bool ParseSeqArg(Napi::Env env, Napi::Value arg, OutputIterator iterator);

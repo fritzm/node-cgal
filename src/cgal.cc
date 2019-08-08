@@ -13,7 +13,7 @@
 // #include "PolygonSet2.h"
 // #include "PolygonWithHoles2.h"
 // #include "Ray2.h"
-// #include "Segment2.h"
+#include "Segment2.h"
 // #include "Vector2.h"
 
 using namespace std;
@@ -61,7 +61,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     // PolygonSet2::Init(env, exports);
     // PolygonWithHoles2::Init(env, exports);
     // Ray2::Init(env, exports);
-    // Segment2::Init(env, exports);
+    Segment2::Init(env, exports);
     // Vector2::Init(env, exports);
 
     return exports;

@@ -1,6 +1,5 @@
 #include "BBox2.h"
 #include "cgal_args.h"
-#include "napi.h"
 
 using namespace std;
 
@@ -52,13 +51,13 @@ bool BBox2::ParseArg(Napi::Env env, Napi::Value arg, Bbox_2& receiver)
 }
 
 
-Napi::Value BBox2::ToPOD(Napi::Env env, bool precise)
+Napi::Value BBox2::ToPOD(Napi::Env env, Bbox_2 const& box, bool precise)
 {
     Napi::Object obj = Napi::Object::New(env);
-    obj.Set("xmin", mWrapped.xmin());
-    obj.Set("ymin", mWrapped.ymin());
-    obj.Set("xmax", mWrapped.xmax());
-    obj.Set("ymax", mWrapped.ymax());
+    obj.Set("xmin", box.xmin());
+    obj.Set("ymin", box.ymin());
+    obj.Set("xmax", box.xmax());
+    obj.Set("ymax", box.ymax());
     return obj;
 }
 
