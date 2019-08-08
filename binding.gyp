@@ -17,7 +17,7 @@
             # 'src/Line2.cc',
             # 'src/NefPolyhedron2.cc',
             'src/Point2.cc',
-            # 'src/Polygon2.cc',
+            'src/Polygon2.cc',
             # 'src/PolygonSet2.cc',
             # 'src/PolygonWithHoles2.cc',
             # 'src/Ray2.cc',

@@ -24,7 +24,7 @@ public:
     static bool ParseSeqArg(Napi::Env env, Napi::Value arg, OutputIterator iterator);
 
     template<typename ForwardIterator>
-    Napi::Value SeqToPOD(
+    static Napi::Value SeqToPOD(
         Napi::Env env, ForwardIterator first, ForwardIterator last, bool precise
     );
 

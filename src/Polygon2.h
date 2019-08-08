@@ -3,28 +3,31 @@
 
 #include "CGALWrapper.h"
 #include "cgal_types.h"
-#include "v8.h"
+#include "napi.h"
 
+#include <vector>
 
 class Polygon2 : public CGALWrapper<Polygon2, Polygon_2>
 {
 public:
 
+    Polygon2(Napi::CallbackInfo const& info);
+
     // The name to be used for our JS class.
     static const char *Name;
 
-    // Add our function templates to the package exports, and return string to be used to name
-    // the class and constructor in JS.  Called indirectly at module load time via the module
+    // Add our property descriptors (instance and static methods and values) to the list that will
+    // be used to define our JS class.  Called indirectly at module load time via the module
     // init function.
-    static void RegisterMethods(v8::Isolate *isolate);
+    static void AddProperties(std::vector<PropertyDescriptor>& properties);
 
-    // Attempt to parse a v8 argument into the CGAL object referred to by receiver.  Returns true
+    // Attempt to parse a JS argument into the CGAL object referred to by receiver. Returns true
     // if parse was successful, false otherwise.
-    static bool ParseArg(v8::Isolate *isolate, v8::Local<v8::Value> arg, Polygon_2 &receiver);
+    static bool ParseArg(Napi::Env env, Napi::Value arg, Polygon_2& receiver);
 
-    // Convert a CGAL object of the wrapped class to a POD v8 object.  If precise is set to false,
+    // Convert a CGAL object of the wrapped class to a POD JS object. If precise is set to false,
     // will attempt to render in terms of doubles for coordinates, and may lose precision.
-    static v8::Local<v8::Value> ToPOD(v8::Isolate *isolate, const Polygon_2 &poly, bool precise=true);
+    static Napi::Value ToPOD(Napi::Env env, Polygon_2 const& box, bool precise);
 
 private:
 
@@ -33,15 +36,15 @@ private:
     //      the semantics and names of CGAL::Point_2 methods.
     //
 
-    static void IsEqual(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsSimple(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsConvex(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Orientation(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void OrientedSide(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void BoundedSide(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Area(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Transform(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Coords(const v8::FunctionCallbackInfo<v8::Value> &info);
+    Napi::Value IsEqual(Napi::CallbackInfo const& info);
+    Napi::Value IsSimple(Napi::CallbackInfo const& info);
+    Napi::Value IsConvex(Napi::CallbackInfo const& info);
+    Napi::Value Orientation(Napi::CallbackInfo const& info);
+    Napi::Value OrientedSide(Napi::CallbackInfo const& info);
+    Napi::Value BoundedSide(Napi::CallbackInfo const& info);
+    Napi::Value Area(Napi::CallbackInfo const& info);
+    // Napi::Value Transform(Napi::CallbackInfo const& info);
+    Napi::Value Coords(Napi::CallbackInfo const& info);
 
 };
 
