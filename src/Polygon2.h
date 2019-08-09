@@ -43,7 +43,7 @@ private:
     Napi::Value OrientedSide(Napi::CallbackInfo const& info);
     Napi::Value BoundedSide(Napi::CallbackInfo const& info);
     Napi::Value Area(Napi::CallbackInfo const& info);
-    // Napi::Value Transform(Napi::CallbackInfo const& info);
+    static Napi::Value Transform(Napi::CallbackInfo const& info);
     Napi::Value Coords(Napi::CallbackInfo const& info);
 
 };

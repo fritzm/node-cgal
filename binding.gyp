@@ -5,7 +5,7 @@
 
         'sources': [
             'src/cgal.cc',
-            # 'src/AffTransformation2.cc',
+            'src/AffTransformation2.cc',
             # 'src/Arrangement2.cc',
             # 'src/Arrangement2Face.cc',
             # 'src/Arrangement2Halfedge.cc',

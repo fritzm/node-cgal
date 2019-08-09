@@ -1,6 +1,6 @@
 #include "Polygon2.h"
 #include "Point2.h"
-// #include "AffTransformation2.h"
+#include "AffTransformation2.h"
 #include "cgal_args.h"
 
 using namespace std;
@@ -25,8 +25,8 @@ void Polygon2::AddProperties(std::vector<PropertyDescriptor>& properties)
         InstanceMethod("orientedSide", &Polygon2::OrientedSide),
         InstanceMethod("boundedSide", &Polygon2::BoundedSide),
         InstanceMethod("area", &Polygon2::Area),
-        InstanceMethod("coords", &Polygon2::Coords)
-        // NODE_SET_METHOD(constructorTemplate, "transform", Transform);
+        InstanceMethod("coords", &Polygon2::Coords),
+        StaticMethod("transform", &Polygon2::Transform)
     });
 }
 
@@ -103,30 +103,24 @@ Napi::Value Polygon2::Area(Napi::CallbackInfo const& info)
 }
 
 
-// void Polygon2::Transform(const FunctionCallbackInfo<Value> &info)
-// {
-//   Isolate *isolate = info.GetIsolate();
-//   HandleScope scope(isolate);
-//   try {
-//     ARGS_ASSERT(isolate, info.Length() == 2);
+Napi::Value Polygon2::Transform(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
 
-//     Aff_transformation_2 afft;
-//     if (!AffTransformation2::ParseArg(isolate, info[0], afft)) {
-//       ARGS_ASSERT(isolate, false);
-//     }
+    ARGS_ASSERT(env, info.Length() == 2);
 
-//     Polygon_2 poly;
-//     if (!ParseArg(isolate, info[1], poly)) {
-//       ARGS_ASSERT(isolate, false);
-//     }
+    Aff_transformation_2 afft;
+    if (!AffTransformation2::ParseArg(env, info[0u], afft)) {
+        ARGS_ASSERT(env, false);
+    }
 
-//     Polygon_2 xpoly = CGAL::transform(afft, poly);
-//     info.GetReturnValue().Set(New(isolate, xpoly));
-//   }
-//   catch (const exception &e) {
-//     isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-//   }
-// }
+    Polygon_2 poly;
+    if (!ParseArg(env, info[1], poly)) {
+        ARGS_ASSERT(env, false);
+    }
+
+    return Polygon2::New(env, CGAL::transform(afft, poly));
+}
 
 
 Napi::Value Polygon2::Coords(Napi::CallbackInfo const& info)

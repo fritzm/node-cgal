@@ -39,7 +39,7 @@ private:
     Napi::Value IsEqual(Napi::CallbackInfo const& info);
     Napi::Value X(Napi::CallbackInfo const& info);
     Napi::Value Y(Napi::CallbackInfo const& info);
-    // Napi::Value Transform(Napi::CallbackInfo const& info);
+    Napi::Value Transform(Napi::CallbackInfo const& info);
 
 };
 

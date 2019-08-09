@@ -94,10 +94,10 @@ describe("CGAL.Polygon2", function() {
         expect(p3.area()).toBeCloseTo(-1.0, 4);
     });
 
-//    it ("should support transformation", function() {
-//        var p1 = new CGAL.Polygon2([[0, 0], [1, 0], [1, 1], [0, 1]]);
-//        var p2;
-//        expect(function() {p2 = CGAL.Polygon2.transform([1, 0, 3, 0, 1, 3], p1);}).not.toThrow();
-//        expect(p2.toPOD(false)[0]).toEqual([3,3]);
-//    });
+   it ("should support transformation", function() {
+       var p1 = new CGAL.Polygon2([[0, 0], [1, 0], [1, 1], [0, 1]]);
+       var p2;
+       expect(function() {p2 = CGAL.Polygon2.transform([1, 0, 3, 0, 1, 3], p1);}).not.toThrow();
+       expect(p2.toPOD(false)[0]).toEqual([3,3]);
+   });
 });

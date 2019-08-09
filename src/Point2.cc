@@ -1,5 +1,5 @@
 #include "Point2.h"
-// #include "AffTransformation2.h"
+#include "AffTransformation2.h"
 #include "cgal_args.h"
 #include "iomanip"
 
@@ -20,8 +20,8 @@ void Point2::AddProperties(vector<PropertyDescriptor>& properties)
     properties.insert(properties.end(), {
         InstanceMethod("isEqual", &Point2::IsEqual),
         InstanceMethod("x", &Point2::X),
-        InstanceMethod("y", &Point2::Y)
-        // InstanceMethod("transform", &Point2::Transform)
+        InstanceMethod("y", &Point2::Y),
+        InstanceMethod("transform", &Point2::Transform)
     });
 }
 
@@ -98,13 +98,13 @@ Napi::Value Point2::Y(Napi::CallbackInfo const& info)
 }
 
 
-// Napi::Value Point2::Transform(Napi::CallbackInfo const& info)
-// {
-//     Napi::Env env = info.Env();
-//     ARGS_ASSERT(isolate, info.Length() == 1);
-//     Aff_transformation_2 afft;
-//     if (AffTransformation2::ParseArg(env, info[0], afft)) {
-//         return mWrapped.transform(afft);
-//     }
-//     ARGS_ASSERT(env, false);
-// }
+Napi::Value Point2::Transform(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(isolate, info.Length() == 1);
+    Aff_transformation_2 aff;
+    if (AffTransformation2::ParseArg(env, info[0], aff)) {
+        return Point2::New(env, mWrapped.transform(aff));
+    }
+    ARGS_ASSERT(env, false);
+}

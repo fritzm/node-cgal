@@ -2,65 +2,60 @@
 #include "Direction2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+AffTransformation2::AffTransformation2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *AffTransformation2::Name = "AffTransformation2";
 
 
-void AffTransformation2::RegisterMethods(v8::Isolate *isolate)
+void AffTransformation2::AddProperties(std::vector<PropertyDescriptor>& properties)
 {
 }
 
 
-bool AffTransformation2::ParseArg(Isolate *isolate, Local<Value> arg, Aff_transformation_2 &receiver)
+bool AffTransformation2::ParseArg(Napi::Env env, Napi::Value arg, Aff_transformation_2& receiver)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
+    if (arg.IsObject() && arg.As<Napi::Object>().InstanceOf(sConstructor.Value())) {
+        receiver = Unwrap(arg.As<Napi::Object>())->mWrapped;
         return true;
     }
 
-    if (arg->IsArray()) {
-        Local<Array> inits = Local<Array>::Cast(arg);
+    if (arg.IsArray()) {
+        Napi::Array inits = arg.As<Napi::Array>();
 
-        if (inits->Length() >= 6 && inits->Length() <= 7) {
-
+        if (inits.Length() >= 6 && inits.Length() <= 7) {
             K::RT m00, m01, m02, m10, m11, m12, hw(1);
-            if (::ParseArg(isolate, inits->Get(context, 0).ToLocalChecked(), m00) &&
-                ::ParseArg(isolate, inits->Get(context, 1).ToLocalChecked(), m01) &&
-                ::ParseArg(isolate, inits->Get(context, 2).ToLocalChecked(), m02) &&
-                ::ParseArg(isolate, inits->Get(context, 3).ToLocalChecked(), m10) &&
-                ::ParseArg(isolate, inits->Get(context, 4).ToLocalChecked(), m11) &&
-                ::ParseArg(isolate, inits->Get(context, 5).ToLocalChecked(), m12))
+            if (::ParseNumberArg(env, inits[0u], m00) &&
+                ::ParseNumberArg(env, inits[1], m01) &&
+                ::ParseNumberArg(env, inits[2], m02) &&
+                ::ParseNumberArg(env, inits[3], m10) &&
+                ::ParseNumberArg(env, inits[4], m11) &&
+                ::ParseNumberArg(env, inits[5], m12))
             {
-                if ((inits->Length() == 7) && !::ParseArg(isolate, inits->Get(context, 6).ToLocalChecked(), hw))
+                if ((inits.Length() == 7) && !::ParseNumberArg(env, inits[6], hw))
                     return false;
-
                 receiver = Aff_transformation_2(m00, m01, m02, m10, m11, m12, hw);
                 return true;
             }
-
         }
 
-        if (inits->Length() >= 2 && inits->Length() <= 3) {
-
+        if (inits.Length() >= 2 && inits.Length() <= 3) {
             Direction_2 dir;
             K::RT num, den(1);
-            if (Direction2::ParseArg(isolate, inits->Get(context, 0).ToLocalChecked(), dir) &&
-                ::ParseArg(isolate, inits->Get(context, 1).ToLocalChecked(), num))
+            if (Direction2::ParseArg(env, inits[0u], dir) &&
+                ::ParseNumberArg(env, inits[1], num))
             {
-                if ((inits->Length() == 3) && !::ParseArg(isolate, inits->Get(context, 2).ToLocalChecked(), den))
+                if ((inits.Length() == 3) && !::ParseNumberArg(env, inits[2], den))
                     return false;
-
                 receiver = Aff_transformation_2(Rotation(), dir, num, den);
                 return true;
             }
-
         }
 
     }
@@ -69,35 +64,27 @@ bool AffTransformation2::ParseArg(Isolate *isolate, Local<Value> arg, Aff_transf
 }
 
 
-Local<Value> AffTransformation2::ToPOD(Isolate *isolate, const Aff_transformation_2 &aff, bool precise)
+Napi::Value AffTransformation2::ToPOD(Napi::Env env, Aff_transformation_2 const& aff, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Array> array = Array::New(isolate, 7);
+    Napi::Array array = Napi::Array::New(env, 7);
 
-    try {
-        for(int i=0; i<7; ++i) {
-            int r = (i == 6) ? 2 : i/3;
-            int c = (i == 6) ? 2 : i%3;
-            K::RT a = aff.hm(r, c);
-            if (precise) {
-                ostringstream str;
+    for(int i=0; i<7; ++i) {
+        int r = (i == 6) ? 2 : i/3;
+        int c = (i == 6) ? 2 : i%3;
+        K::RT a = aff.hm(r, c);
+        if (precise) {
+            ostringstream str;
 #ifdef CGAL_USE_EPECK
-                str << a.exact();
+            str << a.exact();
 #else
-                str << a;
+            str << a;
 #endif
-                array->Set(context, i, String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
-            } else {
-                array->Set(context, i, Number::New(isolate, CGAL::to_double(a)));
-            }
+            array.Set(i, str.str());
+        } else {
+            array.Set(i, CGAL::to_double(a));
         }
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
-
-    return scope.Escape(array);
+    return array;
 }
 
