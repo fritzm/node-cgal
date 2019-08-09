@@ -3,28 +3,31 @@
 
 #include "CGALWrapper.h"
 #include "cgal_types.h"
-#include "v8.h"
+#include "napi.h"
 
+#include <vector>
 
 class Ray2 : public CGALWrapper<Ray2, Ray_2>
 {
 public:
 
+    Ray2(Napi::CallbackInfo const& info);
+
     // The name to be used for our JS class.
     static const char *Name;
 
-    // Add our function templates to the package exports, and return string to be used to name
-    // the class and constructor in JS.  Called indirectly at module load time via the module
+    // Add our property descriptors (instance and static methods and values) to the list that will
+    // be used to define our JS class.  Called indirectly at module load time via the module
     // init function.
-    static void RegisterMethods(v8::Isolate *isolate);
+    static void AddProperties(std::vector<PropertyDescriptor>& properties);
 
-    // Attempt to parse a v8 argument into the CGAL object referred to by receiver.  Returns true
+    // Attempt to parse a JS argument into the CGAL object referred to by receiver. Returns true
     // if parse was successful, false otherwise.
-    static bool ParseArg(v8::Isolate *isolate, v8::Local<v8::Value> arg, Ray_2 &receiver);
+    static bool ParseArg(Napi::Env env, Napi::Value arg, Ray_2& receiver);
 
-    // Convert a CGAL object of the wrapped class to a POD v8 object.  If precise is set to false,
+    // Convert a CGAL object of the wrapped class to a POD JS object. If precise is set to false,
     // will attempt to render in terms of doubles for coordinates, and may lose precision.
-    static v8::Local<v8::Value> ToPOD(v8::Isolate *isolate, const Ray_2 &ray, bool precise=true);
+    static Napi::Value ToPOD(Napi::Env env, Ray_2 const& ray, bool precise=true);
 
 private:
 
@@ -33,18 +36,18 @@ private:
     //      the semantics and names of the wrapped CGAL class.
     //
 
-    static void IsEqual(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Source(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Point(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Direction(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void ToVector(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void SupportingLine(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Opposite(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsDegenerate(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsHorizontal(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsVertical(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void HasOn(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void CollinearHasOn(const v8::FunctionCallbackInfo<v8::Value> &info);
+    Napi::Value IsEqual(Napi::CallbackInfo const& info);
+    Napi::Value Source(Napi::CallbackInfo const& info);
+    Napi::Value Point(Napi::CallbackInfo const& info);
+    Napi::Value Direction(Napi::CallbackInfo const& info);
+    Napi::Value ToVector(Napi::CallbackInfo const& info);
+    Napi::Value SupportingLine(Napi::CallbackInfo const& info);
+    Napi::Value Opposite(Napi::CallbackInfo const& info);
+    Napi::Value IsDegenerate(Napi::CallbackInfo const& info);
+    Napi::Value IsHorizontal(Napi::CallbackInfo const& info);
+    Napi::Value IsVertical(Napi::CallbackInfo const& info);
+    Napi::Value HasOn(Napi::CallbackInfo const& info);
+    Napi::Value CollinearHasOn(Napi::CallbackInfo const& info);
 
 };
 

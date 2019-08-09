@@ -5,53 +5,53 @@
 #include "Ray2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+Vector2::Vector2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *Vector2::Name = "Vector2";
 
 
-void Vector2::RegisterMethods(Isolate *isolate)
+void Vector2::AddProperties(std::vector<PropertyDescriptor>& properties)
 {
 }
 
 
-bool Vector2::ParseArg(Isolate *isolate, Local<Value> arg, Vector_2 &receiver)
+bool Vector2::ParseArg(Napi::Env env, Napi::Value arg, Vector_2& receiver)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
+    if (arg.IsObject() && arg.As<Napi::Object>().InstanceOf(sConstructor.Value())) {
+        receiver = Unwrap(arg.As<Napi::Object>())->mWrapped;
         return true;
     }
 
     Line_2 line;
-    if (Line2::ParseArg(isolate, arg, line)) {
+    if (Line2::ParseArg(env, arg, line)) {
         receiver = Vector_2(line);
         return true;
     }
 
     Segment_2 segment;
-    if (Segment2::ParseArg(isolate, arg, segment)) {
+    if (Segment2::ParseArg(env, arg, segment)) {
         receiver = Vector_2(segment);
         return true;
     }
 
     Ray_2 ray;
-    if (Ray2::ParseArg(isolate, arg, ray)) {
+    if (Ray2::ParseArg(env, arg, ray)) {
         receiver = Vector_2(ray);
         return true;
     }
 
-    if (arg->IsObject()) {
-        Local<Object> inits = Local<Object>::Cast(arg);
-
+    if (arg.IsObject()) {
+        Napi::Object inits = arg.As<Napi::Object>();
         K::FT x, y;
-        if (::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "x")).ToLocalChecked(), x) &&
-            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "y")).ToLocalChecked(), y))
+        if (::ParseNumberArg(env, inits["x"], x) &&
+            ::ParseNumberArg(env, inits["y"], y))
         {
             receiver = Vector_2(x, y);
             return true;
@@ -63,12 +63,9 @@ bool Vector2::ParseArg(Isolate *isolate, Local<Value> arg, Vector_2 &receiver)
 }
 
 
-Local<Value> Vector2::ToPOD(Isolate *isolate, const Vector_2 &vector, bool precise)
+Napi::Value Vector2::ToPOD(Napi::Env env, Vector_2 const& vector, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Object> obj = Object::New(isolate);
-
+    Napi::Object obj = Napi::Object::New(env);
     if (precise) {
 
         ostringstream xstr;
@@ -77,20 +74,21 @@ Local<Value> Vector2::ToPOD(Isolate *isolate, const Vector_2 &vector, bool preci
 #else
         xstr << setprecision(20) << vector.x();
 #endif
-        obj->Set(context, SYMBOL(isolate, "x"), String::NewFromUtf8(isolate, xstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
-
+        obj.Set("x", xstr.str());
         ostringstream ystr;
 #if CGAL_USE_EPECK
         ystr << vector.y().exact();
 #else
         ystr << setprecision(20) << vector.y();
 #endif
-        obj->Set(context, SYMBOL(isolate, "y"), String::NewFromUtf8(isolate, ystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj.Set("y", ystr.str());
 
     } else {
-        obj->Set(context, SYMBOL(isolate, "x"), Number::New(isolate, CGAL::to_double(vector.x())));
-        obj->Set(context, SYMBOL(isolate, "y"), Number::New(isolate, CGAL::to_double(vector.y())));
+
+        obj.Set("x", CGAL::to_double(vector.x()));
+        obj.Set("y", CGAL::to_double(vector.y()));
+
     }
 
-    return scope.Escape(obj);
+    return obj;
 }

@@ -6,85 +6,82 @@
 #include "Ray2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+Direction2::Direction2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *Direction2::Name = "Direction2";
 
 
-void Direction2::RegisterMethods(Isolate *isolate)
+void Direction2::AddProperties(std::vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isEqual", IsEqual);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isLessThan", IsLessThan);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isGreaterThan", IsGreaterThan);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isCCWBetween", IsCCWBetween);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "opposite", Opposite);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "toVector", ToVector);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "dx", DX);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "dy", DY);
+    properties.insert(properties.end(), {
+        InstanceMethod("isEqual", &Direction2::IsEqual),
+        InstanceMethod("isLessThan", &Direction2::IsLessThan),
+        InstanceMethod("isGreaterThan", &Direction2::IsGreaterThan),
+        InstanceMethod("isCCWBetween", &Direction2::IsCCWBetween),
+        InstanceMethod("opposite", &Direction2::Opposite),
+        InstanceMethod("toVector", &Direction2::ToVector),
+        InstanceMethod("dx", &Direction2::DX),
+        InstanceMethod("dy", &Direction2::DY)
+    });
 }
 
 
-bool Direction2::ParseArg(Isolate *isolate, Local<Value> arg, Direction_2 &receiver)
+bool Direction2::ParseArg(Napi::Env env, Napi::Value arg, Direction_2& receiver)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
+    if (arg.IsObject() && arg.As<Napi::Object>().InstanceOf(sConstructor.Value())) {
+        receiver = Unwrap(arg.As<Napi::Object>())->mWrapped;
         return true;
     }
 
     Vector_2 vector;
-    if (Vector2::ParseArg(isolate, arg, vector)) {
+    if (Vector2::ParseArg(env, arg, vector)) {
         receiver = Direction_2(vector);
         return true;
     }
 
     Line_2 line;
-    if (Line2::ParseArg(isolate, arg, line)) {
+    if (Line2::ParseArg(env, arg, line)) {
         receiver = Direction_2(line);
         return true;
     }
 
     Ray_2 ray;
-    if (Ray2::ParseArg(isolate, arg, ray)) {
+    if (Ray2::ParseArg(env, arg, ray)) {
         receiver = Direction_2(ray);
         return true;
     }
 
     Segment_2 segment;
-    if (Segment2::ParseArg(isolate, arg, segment)) {
+    if (Segment2::ParseArg(env, arg, segment)) {
         receiver = Direction_2(segment);
         return true;
     }
 
-    if (arg->IsObject()) {
-        Local<Object> inits = Local<Object>::Cast(arg);
-
+    if (arg.IsObject()) {
+        Napi::Object inits = arg.As<Napi::Object>();
         K::FT dx, dy;
-        if (::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "dx")).ToLocalChecked(), dx) &&
-            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "dy")).ToLocalChecked(), dy))
+        if (::ParseNumberArg(env, inits["dx"], dx) &&
+            ::ParseNumberArg(env, inits["dy"], dy))
         {
             receiver = Direction_2(dx, dy);
             return true;
         }
-
     }
 
     return false;
 }
 
 
-Local<Value> Direction2::ToPOD(Isolate *isolate, const Direction_2 &direction, bool precise)
+Napi::Value Direction2::ToPOD(Napi::Env env, Direction_2 const& direction, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Object> obj = Object::New(isolate);
+    Napi::Object obj = Napi::Object::New(env);
 
     if (precise) {
 
@@ -94,143 +91,82 @@ Local<Value> Direction2::ToPOD(Isolate *isolate, const Direction_2 &direction, b
 #else
         dxstr << setprecision(20) << direction.dx();
 #endif
-        obj->Set(context, SYMBOL(isolate, "dx"), String::NewFromUtf8(isolate, dxstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
-
+        obj.Set("dx", dxstr.str());
         ostringstream dystr;
 #if CGAL_USE_EPECK
         dystr << direction.dy().exact();
 #else
         dystr << setprecision(20) << direction.dy();
 #endif
-        obj->Set(context, SYMBOL(isolate, "dy"), String::NewFromUtf8(isolate, dystr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj.Set("dy", dystr.str());
 
     } else {
 
-        obj->Set(context, SYMBOL(isolate, "dx"), Number::New(isolate, CGAL::to_double(direction.dx())));
-        obj->Set(context, SYMBOL(isolate, "dy"), Number::New(isolate, CGAL::to_double(direction.dy())));
+        obj.Set("dx", CGAL::to_double(direction.dx()));
+        obj.Set("dy", CGAL::to_double(direction.dy()));
 
     }
 
-    return scope.Escape(obj);
+    return obj;
 }
 
 
-void Direction2::IsEqual(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::IsEqual(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &thisDir = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, Direction2::ParseArg, Direction_2, otherDir, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, thisDir == otherDir));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, Direction2::ParseArg, Direction_2, otherDir, info[0]);
+    return Napi::Boolean::New(env, mWrapped == otherDir);
 }
 
 
-void Direction2::IsLessThan(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::IsLessThan(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &thisDir = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, Direction2::ParseArg, Direction_2, otherDir, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, thisDir < otherDir));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, Direction2::ParseArg, Direction_2, otherDir, info[0]);
+    return Napi::Boolean::New(env, mWrapped < otherDir);
 }
 
 
-void Direction2::IsGreaterThan(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::IsGreaterThan(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &thisDir = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, Direction2::ParseArg, Direction_2, otherDir, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, thisDir > otherDir));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, Direction2::ParseArg, Direction_2, otherDir, info[0]);
+    return Napi::Boolean::New(env, mWrapped > otherDir);
 }
 
 
-void Direction2::IsCCWBetween(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::IsCCWBetween(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &dir = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 2);
-        ARGS_PARSE_LOCAL(isolate, Direction2::ParseArg, Direction_2, d1, info[0]);
-        ARGS_PARSE_LOCAL(isolate, Direction2::ParseArg, Direction_2, d2, info[1]);
-        info.GetReturnValue().Set(Boolean::New(isolate, dir.counterclockwise_in_between(d1, d2)));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 2);
+    ARGS_PARSE_LOCAL(env, Direction2::ParseArg, Direction_2, d1, info[0]);
+    ARGS_PARSE_LOCAL(env, Direction2::ParseArg, Direction_2, d2, info[1]);
+    return Napi::Boolean::New(env, mWrapped.counterclockwise_in_between(d1, d2));
 }
 
 
-void Direction2::Opposite(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::Opposite(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &dir = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Direction2::New(isolate, -dir));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Direction2::New(info.Env(), -mWrapped);
 }
 
 
-void Direction2::ToVector(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::ToVector(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &dir = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Vector2::New(isolate, dir.vector()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Vector2::New(info.Env(), mWrapped.vector());
 }
 
 
-void Direction2::DX(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::DX(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &dir = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Number::New(isolate, CGAL::to_double(dir.dx())));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Number::New(info.Env(), CGAL::to_double(mWrapped.dx()));
 }
 
 
-void Direction2::DY(const FunctionCallbackInfo<Value> &info)
+Napi::Value Direction2::DY(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Direction_2 &dir = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Number::New(isolate, CGAL::to_double(dir.dy())));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Number::New(info.Env(), CGAL::to_double(mWrapped.dy()));
 }

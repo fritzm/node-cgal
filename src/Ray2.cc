@@ -5,75 +5,70 @@
 #include "Vector2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+Ray2::Ray2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *Ray2::Name = "Ray2";
 
 
-void Ray2::RegisterMethods(Isolate *isolate)
+void Ray2::AddProperties(std::vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isEqual", IsEqual);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "source", Source);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "point", Point);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "direction", Direction);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "toVector", ToVector);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "supportingLine", SupportingLine);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "opposite", Opposite);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isDegenerate", IsDegenerate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isHorizontal", IsHorizontal);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isVertical", IsVertical);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "hasOn", HasOn);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "collinearHasOn", CollinearHasOn);
+    properties.insert(properties.end(), {
+        InstanceMethod("isEqual", &Ray2::IsEqual),
+        InstanceMethod("source", &Ray2::Source),
+        InstanceMethod("point", &Ray2::Point),
+        InstanceMethod("direction", &Ray2::Direction),
+        InstanceMethod("toVector", &Ray2::ToVector),
+        InstanceMethod("supportingLine", &Ray2::SupportingLine),
+        InstanceMethod("opposite", &Ray2::Opposite),
+        InstanceMethod("isDegenerate", &Ray2::IsDegenerate),
+        InstanceMethod("isHorizontal", &Ray2::IsHorizontal),
+        InstanceMethod("isVertical", &Ray2::IsVertical),
+        InstanceMethod("hasOn", &Ray2::HasOn),
+        InstanceMethod("collinearHasOn", &Ray2::CollinearHasOn)
+    });
 }
 
 
-bool Ray2::ParseArg(Isolate *isolate, Local<Value> arg, Ray_2 &receiver)
+bool Ray2::ParseArg(Napi::Env env, Napi::Value arg, Ray_2& receiver)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
+    if (arg.IsObject()) {
+        Napi::Object obj = arg.As<Napi::Object>();
 
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
-        return true;
-    }
-
-    if (arg->IsObject()) {
-        Local<Object> inits = Local<Object>::Cast(arg);
+        if (obj.InstanceOf(sConstructor.Value())) {
+            receiver = Unwrap(obj)->mWrapped;
+            return true;
+        }
 
         Point_2 p;
         Direction_2 d;
-        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
-            Direction2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "d")).ToLocalChecked(), d))
+        if (Point2::ParseArg(env, obj["p"], p) &&
+            Direction2::ParseArg(env, obj["d"], d))
         {
             receiver = Ray_2(p, d);
             return true;
         }
 
         Point_2 q;
-        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
-            Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "q")).ToLocalChecked(), q))
-        {
+        if (Point2::ParseArg(env, obj["q"], q)) {
             receiver = Ray_2(p, q);
             return true;
         }
 
         Line_2 l;
-        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
-            Line2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "l")).ToLocalChecked(), l))
-        {
+        if (Line2::ParseArg(env, obj["l"], l)) {
             receiver = Ray_2(p, l);
             return true;
         }
 
         Vector_2 v;
-        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
-            Vector2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "v")).ToLocalChecked(), v))
-        {
+        if (Vector2::ParseArg(env, obj["v"], v)) {
             receiver = Ray_2(p, v);
             return true;
         }
@@ -84,189 +79,94 @@ bool Ray2::ParseArg(Isolate *isolate, Local<Value> arg, Ray_2 &receiver)
 }
 
 
-Local<Value> Ray2::ToPOD(Isolate *isolate, const Ray_2 &ray, bool precise)
+Napi::Value Ray2::ToPOD(Napi::Env env, Ray_2 const& ray, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Object> obj = Object::New(isolate);
-    obj->Set(context, SYMBOL(isolate, "p"), Point2::ToPOD(isolate, ray.source(), precise));
-    obj->Set(context, SYMBOL(isolate, "d"), Direction2::ToPOD(isolate, ray.direction(), precise));
-    return scope.Escape(obj);
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set("p", Point2::ToPOD(env, ray.source(), precise));
+    obj.Set("d", Direction2::ToPOD(env, ray.direction(), precise));
+    return obj;
 }
 
 
-void Ray2::IsEqual(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::IsEqual(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &thisRay = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, Ray2::ParseArg, Ray_2, otherRay, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, thisRay == otherRay));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, Ray2::ParseArg, Ray_2, otherRay, info[0]);
+    return Napi::Boolean::New(env, mWrapped == otherRay);
 }
 
 
-void Ray2::Source(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::Source(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Point2::New(isolate, ray.source()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Point2::New(info.Env(), mWrapped.source());
 }
 
 
-void Ray2::Point(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::Point(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_ASSERT(isolate, info[0]->IsNumber())
-        info.GetReturnValue().Set(Point2::New(isolate, ray.point(info[0]->NumberValue(context).ToChecked())));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_ASSERT(env, info[0].IsNumber())
+    return Point2::New(env, mWrapped.point(info[0].As<Napi::Number>()));
 }
 
 
-void Ray2::Direction(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::Direction(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Direction2::New(isolate, ray.direction()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Direction2::New(info.Env(), mWrapped.direction());
 }
 
 
-void Ray2::ToVector(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::ToVector(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Vector2::New(isolate, ray.to_vector()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Vector2::New(info.Env(), mWrapped.to_vector());
 }
 
 
-void Ray2::SupportingLine(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::SupportingLine(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Line2::New(isolate, ray.supporting_line()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Line2::New(info.Env(), mWrapped.supporting_line());
 }
 
 
-void Ray2::Opposite(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::Opposite(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Ray2::New(isolate, ray.opposite()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Ray2::New(info.Env(), mWrapped.opposite());
 }
 
 
-void Ray2::IsDegenerate(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::IsDegenerate(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, ray.is_degenerate()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_degenerate());
 }
 
 
-void Ray2::IsHorizontal(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::IsHorizontal(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, ray.is_horizontal()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_horizontal());
 }
 
 
-void Ray2::IsVertical(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::IsVertical(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, ray.is_vertical()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_vertical());
 }
 
 
-void Ray2::HasOn(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::HasOn(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, Point2::ParseArg, Point_2, point, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, ray.has_on(point)));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, Point2::ParseArg, Point_2, point, info[0]);
+    return Napi::Boolean::New(env, mWrapped.has_on(point));
 }
 
 
-void Ray2::CollinearHasOn(const FunctionCallbackInfo<Value> &info)
+Napi::Value Ray2::CollinearHasOn(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Ray_2 &ray = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, Point2::ParseArg, Point_2, point, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, ray.collinear_has_on(point)));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, Point2::ParseArg, Point_2, point, info[0]);
+    return Napi::Boolean::New(env, mWrapped.collinear_has_on(point));
 }

@@ -13,16 +13,16 @@
             'src/BBox2.cc',
             # 'src/Curve2.cc',
             # 'src/D2.cc',
-            # 'src/Direction2.cc',
+            'src/Direction2.cc',
             'src/Line2.cc',
             # 'src/NefPolyhedron2.cc',
             'src/Point2.cc',
             'src/Polygon2.cc',
             # 'src/PolygonSet2.cc',
             # 'src/PolygonWithHoles2.cc',
-            # 'src/Ray2.cc',
+            'src/Ray2.cc',
             'src/Segment2.cc',
-            # 'src/Vector2.cc'
+            'src/Vector2.cc'
          ],
 
         'include_dirs': [
