@@ -2,49 +2,48 @@
 #include "Polygon2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+PolygonWithHoles2::PolygonWithHoles2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *PolygonWithHoles2::Name = "PolygonWithHoles2";
 
 
-void PolygonWithHoles2::RegisterMethods(Isolate *isolate)
+void PolygonWithHoles2::AddProperties(std::vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isEqual", IsEqual);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "outer", Outer);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "holes", Holes);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isUnbounded", IsUnbounded);
+    properties.insert(properties.end(), {
+        InstanceMethod("isEqual", &PolygonWithHoles2::IsEqual),
+        InstanceMethod("outer", &PolygonWithHoles2::Outer),
+        InstanceMethod("holes", &PolygonWithHoles2::Holes),
+        InstanceMethod("isUnbounded", &PolygonWithHoles2::IsUnbounded)
+    });
 }
 
 
-bool PolygonWithHoles2::ParseArg(Isolate *isolate, Local<Value> arg, Polygon_with_holes_2 &receiver)
+bool PolygonWithHoles2::ParseArg(Napi::Env env, Napi::Value arg, Polygon_with_holes_2& receiver)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
+    if (arg.IsObject()) {
+        Napi::Object obj = arg.As<Napi::Object>();
 
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
-        return true;
-    }
-
-    if (arg->IsObject()) {
-        Local<Object> inits = Local<Object>::Cast(arg);
+        if (obj.InstanceOf(sConstructor.Value())) {
+            receiver = Unwrap(obj)->mWrapped;
+            return true;
+        }
 
         Polygon_2 outer;
         vector<Polygon_2> holes;
-
-        if (Polygon2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "outer")).ToLocalChecked(), outer) &&
-            Polygon2::ParseSeqArg(isolate, inits->Get(context, SYMBOL(isolate, "holes")).ToLocalChecked(), back_inserter(holes)))
+        if (Polygon2::ParseArg(env, obj["outer"], outer) &&
+            Polygon2::ParseSeqArg(env, obj["holes"], back_inserter(holes)))
         {
             receiver = Polygon_with_holes_2(outer, holes.begin(), holes.end());
             return true;
         }
-
-        if (Polygon2::ParseArg(isolate, arg, outer)) {
+        if (Polygon2::ParseArg(env, arg, outer)) {
             receiver = Polygon_with_holes_2(outer);
             return true;
         }
@@ -55,77 +54,44 @@ bool PolygonWithHoles2::ParseArg(Isolate *isolate, Local<Value> arg, Polygon_wit
 }
 
 
-Local<Value> PolygonWithHoles2::ToPOD(Isolate *isolate, const Polygon_with_holes_2 &poly, bool precise)
+Napi::Value PolygonWithHoles2::ToPOD(Napi::Env env, Polygon_with_holes_2 const& poly, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Object> obj = Object::New(isolate);
-    obj->Set(context, SYMBOL(isolate, "outer"), Polygon2::ToPOD(isolate, poly.outer_boundary(), precise));
-    obj->Set(context, SYMBOL(isolate, "holes"), Polygon2::SeqToPOD(isolate, poly.holes_begin(), poly.holes_end(), precise));
-    return scope.Escape(obj);
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set("outer", Polygon2::ToPOD(env, poly.outer_boundary(), precise));
+    obj.Set("holes", Polygon2::SeqToPOD(env, poly.holes_begin(), poly.holes_end(), precise));
+    return obj;
 }
 
 
-void PolygonWithHoles2::IsEqual(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonWithHoles2::IsEqual(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_with_holes_2 &thisPoly = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, PolygonWithHoles2::ParseArg, Polygon_with_holes_2, otherPoly, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, thisPoly == otherPoly));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, PolygonWithHoles2::ParseArg, Polygon_with_holes_2, otherPoly, info[0]);
+    return Napi::Boolean::New(env, mWrapped == otherPoly);
 }
 
 
-void PolygonWithHoles2::Outer(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonWithHoles2::Outer(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_with_holes_2 &poly = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Polygon2::New(isolate, poly.outer_boundary()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Polygon2::New(info.Env(), mWrapped.outer_boundary());
 }
 
 
-void PolygonWithHoles2::Holes(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonWithHoles2::Holes(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    try {
-        Polygon_with_holes_2 &poly = ExtractWrapped(info.This());
-        Local<Array> array = Array::New(isolate);
-        uint32_t i;
-        Polygon_with_holes_2::Hole_const_iterator it;
-        for(it=poly.holes_begin(),i=0; it!=poly.holes_end(); ++it,++i) {
-            array->Set(context, i, Polygon2::New(isolate, *it));
-        }
-        info.GetReturnValue().Set(array);
+    Napi::Env env = info.Env();
+    Napi::Array array = Napi::Array::New(env);
+    uint32_t i;
+    Polygon_with_holes_2::Hole_const_iterator it;
+    for(it=mWrapped.holes_begin(),i=0; it!=mWrapped.holes_end(); ++it,++i) {
+        array.Set(i, Polygon2::New(env, *it));
     }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return array;
 }
 
 
-void PolygonWithHoles2::IsUnbounded(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonWithHoles2::IsUnbounded(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_with_holes_2 &poly = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, poly.is_unbounded()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_unbounded());
 }
