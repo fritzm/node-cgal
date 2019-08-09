@@ -3,7 +3,7 @@
 #include "AffTransformation2.h"
 // #include "Arrangement2.h"
 #include "BBox2.h"
-// #include "Curve2.h"
+#include "Curve2.h"
 // #include "D2.h"
 #include "Direction2.h"
 #include "Line2.h"
@@ -51,7 +51,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     AffTransformation2::Init(env, exports);
     // Arrangement2::Init(env, exports);
     BBox2::Init(env, exports);
-    // Curve2::Init(env, exports);
+    Curve2::Init(env, exports);
     // D2::Init(env, exports);
     Direction2::Init(env, exports);
     Line2::Init(env, exports);

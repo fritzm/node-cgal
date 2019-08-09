@@ -5,53 +5,55 @@
 #include "Ray2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+Curve2::Curve2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *Curve2::Name = "Curve2";
 
 
-void Curve2::RegisterMethods(Isolate *isolate)
+void Curve2::AddProperties(std::vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isSegment", IsSegment);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "segment", Segment);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isRay", IsRay);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "ray", Ray);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isLine", IsLine);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "line", Line);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "supportingLine", SupportingLine);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "source", Source);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "target", Target);
+    properties.insert(properties.end(), {
+        InstanceMethod("isSegment", &Curve2::IsSegment),
+        InstanceMethod("segment", &Curve2::Segment),
+        InstanceMethod("isRay", &Curve2::IsRay),
+        InstanceMethod("ray", &Curve2::Ray),
+        InstanceMethod("isLine", &Curve2::IsLine),
+        InstanceMethod("line", &Curve2::Line),
+        InstanceMethod("supportingLine", &Curve2::SupportingLine),
+        InstanceMethod("source", &Curve2::Source),
+        InstanceMethod("target", &Curve2::Target)
+    });
 }
 
 
-bool Curve2::ParseArg(Isolate *isolate, Local<Value> arg, Curve_2 &receiver)
+bool Curve2::ParseArg(Napi::Env env, Napi::Value arg, Curve_2& receiver)
 {
-    HandleScope scope(isolate);
-
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
+    if (arg.IsObject() && arg.As<Napi::Object>().InstanceOf(sConstructor.Value())) {
+        receiver = Unwrap(arg.As<Napi::Object>())->mWrapped;
         return true;
     }
 
     Segment_2 segment;
-    if (Segment2::ParseArg(isolate, arg, segment)) {
+    if (Segment2::ParseArg(env, arg, segment)) {
         receiver = Curve_2(segment);
         return true;
     }
 
     Line_2 line;
-    if (Line2::ParseArg(isolate, arg, line)) {
+    if (Line2::ParseArg(env, arg, line)) {
         receiver = Curve_2(line);
         return true;
     }
 
     Ray_2 ray;
-    if (Ray2::ParseArg(isolate, arg, ray)) {
+    if (Ray2::ParseArg(env, arg, ray)) {
         receiver = Curve_2(ray);
         return true;
     }
@@ -60,135 +62,62 @@ bool Curve2::ParseArg(Isolate *isolate, Local<Value> arg, Curve_2 &receiver)
 }
 
 
-Local<Value> Curve2::ToPOD(Isolate *isolate, const Curve_2 &curve, bool precise)
+Napi::Value Curve2::ToPOD(Napi::Env env, Curve_2 const& curve, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Object> obj = Object::New(isolate);
-    return scope.Escape(obj);
+    Napi::Object obj = Napi::Object::New(env);
+    return obj;
 }
 
 
-void Curve2::IsSegment(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::IsSegment(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, curve.is_segment()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_segment());
 }
 
 
-void Curve2::Segment(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::Segment(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Segment2::New(isolate, curve.segment()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Segment2::New(info.Env(), mWrapped.segment());
 }
 
 
-void Curve2::IsRay(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::IsRay(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, curve.is_ray()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_ray());
 }
 
 
-void Curve2::Ray(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::Ray(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Ray2::New(isolate, curve.ray()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Ray2::New(info.Env(), mWrapped.ray());
 }
 
 
-void Curve2::IsLine(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::IsLine(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, curve.is_line()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_line());
 }
 
 
-void Curve2::Line(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::Line(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Line2::New(isolate, curve.line()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Line2::New(info.Env(), mWrapped.line());
 }
 
 
-void Curve2::SupportingLine(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::SupportingLine(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Line2::New(isolate, curve.supporting_line()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Line2::New(info.Env(), mWrapped.supporting_line());
 }
 
 
-void Curve2::Source(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::Source(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Point2::New(isolate, curve.source()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Point2::New(info.Env(), mWrapped.source());
 }
 
 
-void Curve2::Target(const FunctionCallbackInfo<Value> &info)
+Napi::Value Curve2::Target(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Curve_2 &curve = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Point2::New(isolate, curve.target()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Point2::New(info.Env(), mWrapped.target());
 }
