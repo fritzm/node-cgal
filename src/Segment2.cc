@@ -15,7 +15,7 @@ Segment2::Segment2(Napi::CallbackInfo const& info)
 const char *Segment2::Name = "Segment2";
 
 
-void Segment2::AddProperties(vector<PropertyDescriptor>& properties)
+void Segment2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("isHorizontal", &Segment2::IsHorizontal),

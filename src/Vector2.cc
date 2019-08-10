@@ -17,7 +17,7 @@ Vector2::Vector2(Napi::CallbackInfo const& info)
 const char *Vector2::Name = "Vector2";
 
 
-void Vector2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void Vector2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
 }
 

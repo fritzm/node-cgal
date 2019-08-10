@@ -18,7 +18,7 @@ Direction2::Direction2(Napi::CallbackInfo const& info)
 const char *Direction2::Name = "Direction2";
 
 
-void Direction2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void Direction2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("isEqual", &Direction2::IsEqual),

@@ -35,7 +35,7 @@ template<typename WrapperClass, typename CGALClass>
 Napi::Object CGALWrapper<WrapperClass, CGALClass>::Init(Napi::Env env, Napi::Object exports)
 {
     std::vector<typename CGALWrapper<WrapperClass, CGALClass>::PropertyDescriptor> properties;
-    WrapperClass::AddProperties(properties);
+    WrapperClass::AddProperties(env, properties);
 
     properties.insert(properties.end(), {
        CGALWrapper::InstanceMethod("toPOD", &CGALWrapper::ToPOD), 

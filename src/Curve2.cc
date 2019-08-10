@@ -17,7 +17,7 @@ Curve2::Curve2(Napi::CallbackInfo const& info)
 const char *Curve2::Name = "Curve2";
 
 
-void Curve2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void Curve2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("isSegment", &Curve2::IsSegment),

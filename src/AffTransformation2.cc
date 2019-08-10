@@ -14,7 +14,7 @@ AffTransformation2::AffTransformation2(Napi::CallbackInfo const& info)
 const char *AffTransformation2::Name = "AffTransformation2";
 
 
-void AffTransformation2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void AffTransformation2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
 }
 

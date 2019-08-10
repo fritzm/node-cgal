@@ -22,7 +22,7 @@ ostream &operator<<(ostream &str, const Polygon_set_2 &polySet)
 }
 
 
-void PolygonSet2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void PolygonSet2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("polygonsWithHoles", &PolygonSet2::PolygonsWithHoles),

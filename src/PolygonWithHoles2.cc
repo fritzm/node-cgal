@@ -14,7 +14,7 @@ PolygonWithHoles2::PolygonWithHoles2(Napi::CallbackInfo const& info)
 const char *PolygonWithHoles2::Name = "PolygonWithHoles2";
 
 
-void PolygonWithHoles2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void PolygonWithHoles2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("isEqual", &PolygonWithHoles2::IsEqual),

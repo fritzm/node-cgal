@@ -15,7 +15,7 @@ Point2::Point2(Napi::CallbackInfo const& info)
 const char *Point2::Name = "Point2";
 
 
-void Point2::AddProperties(vector<PropertyDescriptor>& properties)
+void Point2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("isEqual", &Point2::IsEqual),

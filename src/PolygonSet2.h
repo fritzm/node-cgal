@@ -20,7 +20,7 @@ public:
     // Add our property descriptors (instance and static methods and values) to the list that will
     // be used to define our JS class. Called indirectly at module load time via the module
     // init function.
-    static void AddProperties(std::vector<PropertyDescriptor>& properties);
+    static void AddProperties(Napi::Env env, std::vector<PropertyDescriptor>& properties);
 
     // Attempt to parse a JS argument into the CGAL object referred to by receiver. Returns true
     // if parse was successful, false otherwise.

@@ -13,7 +13,7 @@ BBox2::BBox2(Napi::CallbackInfo const& info)
 char const* BBox2::Name = "BBox2";
 
 
-void BBox2::AddProperties(vector<PropertyDescriptor>& properties)
+void BBox2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("overlaps", &BBox2::Overlaps),

@@ -13,7 +13,7 @@ Line2::Line2(Napi::CallbackInfo const& info)
 const char *Line2::Name = "Line2";
 
 
-void Line2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void Line2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("isEqual", &Line2::IsEqual),

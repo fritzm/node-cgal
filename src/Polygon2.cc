@@ -15,7 +15,7 @@ Polygon2::Polygon2(Napi::CallbackInfo const& info)
 const char *Polygon2::Name = "Polygon2";
 
 
-void Polygon2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void Polygon2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(),{
         InstanceMethod("isEqual", &Polygon2::IsEqual),

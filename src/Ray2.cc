@@ -17,7 +17,7 @@ Ray2::Ray2(Napi::CallbackInfo const& info)
 const char *Ray2::Name = "Ray2";
 
 
-void Ray2::AddProperties(std::vector<PropertyDescriptor>& properties)
+void Ray2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
     properties.insert(properties.end(), {
         InstanceMethod("isEqual", &Ray2::IsEqual),
