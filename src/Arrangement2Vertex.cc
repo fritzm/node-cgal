@@ -5,58 +5,52 @@
 #include "cgal_args.h"
 #include <sstream>
 
-using namespace v8;
-using namespace node;
 using namespace std;
 
 
-const char *Arrangement2Vertex::Name = "Vertex";
-
-
-void Arrangement2Vertex::RegisterMethods(Isolate *isolate)
+Arrangement2Vertex::Arrangement2Vertex(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "toString", ToString);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isAtOpenBoundary", IsAtOpenBoundary);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isIsolated", IsIsolated);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "degree", Degree);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "incidentHalfedges", IncidentHalfedges);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "face", Face);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "point", Point);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "parameterSpaceInX", ParameterSpaceInX);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "parameterSpaceInY", ParameterSpaceInY);
 }
 
 
-bool Arrangement2Vertex::ParseArg(Isolate *isolate, Local<Value> arg, Arrangement_2::Vertex_handle &receiver)
-{
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
-        return true;
-    }
+char const* Arrangement2Vertex::Name = "Vertex";
 
+
+void Arrangement2Vertex::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
+{
+    properties.insert(properties.end(), {
+        InstanceMethod("toString", &Arrangement2Vertex::ToString),
+        InstanceMethod("isAtOpenBoundary", &Arrangement2Vertex::IsAtOpenBoundary),
+        InstanceMethod("isIsolated", &Arrangement2Vertex::IsIsolated),
+        InstanceMethod("degree", &Arrangement2Vertex::Degree),
+        InstanceMethod("incidentHalfedges", &Arrangement2Vertex::IncidentHalfedges),
+        InstanceMethod("face", &Arrangement2Vertex::Face),
+        InstanceMethod("point", &Arrangement2Vertex::Point),
+        InstanceMethod("parameterSpaceInX", &Arrangement2Vertex::ParameterSpaceInX),
+        InstanceMethod("parameterSpaceInY", &Arrangement2Vertex::ParameterSpaceInY)
+    });
+}
+
+
+bool Arrangement2Vertex::ParseArg(Napi::Env env, Napi::Value arg, Arrangement_2::Vertex_handle& receiver)
+{
     return false;
 }
 
 
-Local<Value> Arrangement2Vertex::ToPOD(Isolate *isolate, const Arrangement_2::Vertex_handle &vertex, bool precise)
+Napi::Value Arrangement2Vertex::ToPOD(Napi::Env env, Arrangement_2::Vertex_handle const& vertex, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Object> obj = Object::New(isolate);
-    return scope.Escape(obj);
+    return Napi::Object::New(env);
 }
 
 
-void Arrangement2Vertex::ToString(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::ToString(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
     ostringstream str;
-    str << "[object "  << Name << " " << vertex.ptr() <<" ";
-    if (vertex->is_at_open_boundary()) {
-        switch(vertex->parameter_space_in_x()) {
+    str << "[object "  << Name << " " << mWrapped.ptr() <<" ";
+    if (mWrapped->is_at_open_boundary()) {
+        switch(mWrapped->parameter_space_in_x()) {
         case CGAL::ARR_LEFT_BOUNDARY:
             str << "LEFT";
             break;
@@ -68,7 +62,7 @@ void Arrangement2Vertex::ToString(const FunctionCallbackInfo<Value> &info)
             break;
         }
         str << " ";
-        switch(vertex->parameter_space_in_y()) {
+        switch(mWrapped->parameter_space_in_y()) {
         case CGAL::ARR_TOP_BOUNDARY:
             str << "TOP";
             break;
@@ -80,128 +74,64 @@ void Arrangement2Vertex::ToString(const FunctionCallbackInfo<Value> &info)
             break;
         }
     } else {
-        str << vertex->point();
+        str << mWrapped->point();
     }
     str << "]";
-    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+    return Napi::String::New(info.Env(), str.str());
 }
 
 
-void Arrangement2Vertex::IsAtOpenBoundary(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::IsAtOpenBoundary(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, vertex->is_at_open_boundary()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped->is_at_open_boundary());
 }
 
 
-void Arrangement2Vertex::IsIsolated(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::IsIsolated(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, vertex->is_isolated()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped->is_isolated());
 }
 
 
-void Arrangement2Vertex::Degree(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::Degree(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Integer::New(isolate, vertex->degree()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Number::New(info.Env(), mWrapped->degree());
 }
 
 
-void Arrangement2Vertex::IncidentHalfedges(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::IncidentHalfedges(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        Local<Array> array = Array::New(isolate);
-        Arrangement_2::Halfedge_around_vertex_circulator first, curr;
-        first = curr = vertex->incident_halfedges();
-        uint32_t i = 0;
-        do {
-            array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
-        } while(++i,++curr != first);
-        info.GetReturnValue().Set(array);
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    Napi::Array array = Napi::Array::New(env);
+    Arrangement_2::Halfedge_around_vertex_circulator first, curr;
+    first = curr = mWrapped->incident_halfedges();
+    uint32_t i = 0;
+    do {
+        array.Set(i, Arrangement2Halfedge::New(env, curr));
+    } while(++i,++curr != first);
+    return array;
 }
 
 
-void Arrangement2Vertex::Face(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::Face(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Arrangement2Face::New(isolate, vertex->face()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Arrangement2Face::New(info.Env(), mWrapped->face());
 }
 
 
-void Arrangement2Vertex::Point(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::Point(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Point2::New(isolate, vertex->point()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Point2::New(info.Env(), mWrapped->point());
 }
 
 
-void Arrangement2Vertex::ParameterSpaceInX(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::ParameterSpaceInX(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Integer::New(isolate, vertex->parameter_space_in_x()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Number::New(info.Env(), mWrapped->parameter_space_in_x());
 }
 
 
-void Arrangement2Vertex::ParameterSpaceInY(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Vertex::ParameterSpaceInY(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Vertex_handle &vertex = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Integer::New(isolate, vertex->parameter_space_in_y()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Number::New(info.Env(), mWrapped->parameter_space_in_y());
 }

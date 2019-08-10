@@ -1,7 +1,7 @@
 #include "cgal.h"
 #include "cgal_types.h"
 #include "AffTransformation2.h"
-// #include "Arrangement2.h"
+#include "Arrangement2.h"
 #include "BBox2.h"
 #include "Curve2.h"
 #include "D2.h"
@@ -49,7 +49,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set("ARR_INTERIOR", (int)CGAL::ARR_INTERIOR);
 
     AffTransformation2::Init(env, exports);
-    // Arrangement2::Init(env, exports);
+    Arrangement2::Init(env, exports);
     BBox2::Init(env, exports);
     Curve2::Init(env, exports);
     D2::Init(env, exports);
