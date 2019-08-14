@@ -5,9 +5,13 @@
 #include "Point2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+PolygonSet2::PolygonSet2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *PolygonSet2::Name = "PolygonSet2";
@@ -18,44 +22,44 @@ ostream &operator<<(ostream &str, const Polygon_set_2 &polySet)
 }
 
 
-void PolygonSet2::RegisterMethods(Isolate *isolate)
+void PolygonSet2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "polygonsWithHoles", PolygonsWithHoles);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "numPolygonsWithHoles", NumPolygonsWithHoles);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isEmpty", IsEmpty);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isPlane", IsPlane);
-    // NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "arrangement", Arrangement);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "clear", Clear);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "complement", Complement);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "intersection", Intersection);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "join", Join);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "difference", Difference);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "symmetricDifference", SymmetricDifference);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "intersects", Intersects);
-    // NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "locate", Locate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "insert", Insert);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "orientedSide", OrientedSide);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isValid", IsValid);
+    properties.insert(properties.end(), {
+        InstanceMethod("polygonsWithHoles", &PolygonSet2::PolygonsWithHoles),
+        InstanceMethod("numPolygonsWithHoles", &PolygonSet2::NumPolygonsWithHoles),
+        InstanceMethod("isEmpty", &PolygonSet2::IsEmpty),
+        InstanceMethod("isPlane", &PolygonSet2::IsPlane),
+        // InstanceMethod("arrangement", &PolygonSet2::Arrangement),
+        InstanceMethod("clear", &PolygonSet2::Clear),
+        InstanceMethod("complement", &PolygonSet2::Complement),
+        InstanceMethod("intersection", &PolygonSet2::Intersection),
+        InstanceMethod("join", &PolygonSet2::Join),
+        InstanceMethod("difference", &PolygonSet2::Difference),
+        InstanceMethod("symmetricDifference", &PolygonSet2::SymmetricDifference),
+        InstanceMethod("intersects", &PolygonSet2::Intersects),
+        // InstanceMethod("locate", &PolygonSet2::Locate),
+        InstanceMethod("insert", &PolygonSet2::Insert),
+        InstanceMethod("orientedSide", &PolygonSet2::OrientedSide),
+        InstanceMethod("isValid", &PolygonSet2::IsValid)
+    });
 }
 
 
-bool PolygonSet2::ParseArg(Isolate *isolate, Local<Value> arg, Polygon_set_2 &receiver)
+bool PolygonSet2::ParseArg(Napi::Env env, Napi::Value arg, Polygon_set_2& receiver)
 {
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
+    if (arg.IsObject() && arg.As<Napi::Object>().InstanceOf(sConstructor.Value())) {
+        receiver = Unwrap(arg.As<Napi::Object>())->mWrapped;
         return true;
     }
 
     Polygon_2 poly;
-    if (Polygon2::ParseArg(isolate, arg, poly)) {
+    if (Polygon2::ParseArg(env, arg, poly)) {
         receiver = Polygon_set_2(poly);
         return true;
     }
 
     Polygon_with_holes_2 pwh;
-    if (PolygonWithHoles2::ParseArg(isolate, arg, pwh)) {
+    if (PolygonWithHoles2::ParseArg(env, arg, pwh)) {
         receiver = Polygon_set_2(pwh);
         return true;
     }
@@ -64,432 +68,260 @@ bool PolygonSet2::ParseArg(Isolate *isolate, Local<Value> arg, Polygon_set_2 &re
 }
 
 
-Local<Value> PolygonSet2::ToPOD(Isolate *isolate, const Polygon_set_2 &polySet, bool precise)
+Napi::Value PolygonSet2::ToPOD(Napi::Env env, Polygon_set_2 const& polys, bool precise)
 {
-    EscapableHandleScope scope(isolate);
     vector<Polygon_with_holes_2> pwhs;
-    polySet.polygons_with_holes(back_inserter(pwhs));
-    return scope.Escape(PolygonWithHoles2::SeqToPOD(isolate, pwhs.begin(), pwhs.end(), precise));
+    polys.polygons_with_holes(back_inserter(pwhs));
+    return PolygonWithHoles2::SeqToPOD(env, pwhs.begin(), pwhs.end(), precise);
 }
 
 
-void PolygonSet2::PolygonsWithHoles(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::PolygonsWithHoles(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    try {
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-        vector<Polygon_with_holes_2> pwhs;
-        polySet.polygons_with_holes(back_inserter(pwhs));
-        Local<Array> array = Array::New(isolate);
-        uint32_t i;
-        vector<Polygon_with_holes_2>::iterator it;
-        for(it=pwhs.begin(),i=0; it!=pwhs.end(); ++it,++i) {
-            array->Set(context, i, PolygonWithHoles2::New(isolate, *it));
-        }
-        info.GetReturnValue().Set(array);
+    Napi::Env env = info.Env();
+    vector<Polygon_with_holes_2> pwhs;
+    mWrapped.polygons_with_holes(back_inserter(pwhs));
+    Napi::Array array = Napi::Array::New(env);
+    uint32_t i;
+    vector<Polygon_with_holes_2>::iterator it;
+    for(it=pwhs.begin(),i=0; it!=pwhs.end(); ++it,++i) {
+        array.Set(i, PolygonWithHoles2::New(env, *it));
     }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return array;
 }
 
 
-void PolygonSet2::NumPolygonsWithHoles(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::NumPolygonsWithHoles(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Number::New(isolate, polySet.number_of_polygons_with_holes()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Number::New(info.Env(), mWrapped.number_of_polygons_with_holes());
 }
 
 
-void PolygonSet2::IsEmpty(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::IsEmpty(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, polySet.is_empty()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_empty());
 }
 
 
-void PolygonSet2::IsPlane(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::IsPlane(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, polySet.is_plane()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_plane());
 }
 
 
-// void PolygonSet2::Arrangement(const FunctionCallbackInfo<Value> &info)
+// Napi::Value PolygonSet2::Arrangement(Napi::CallbackInfo const& info)
 // {
-//     Isolate *isolate = info.GetIsolate();
-//     HandleScope scope(isolate);
-//     try {
-//         Polygon_set_2 &polySet = ExtractWrapped(info.This());
-//         info.GetReturnValue().Set(isolate, Arrangement2::New(polySet.arrangement()));
-//     }
-//     catch (const exception &e) {
-//         isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-//     }
+//     return Arrangement2::New(info.Env(), mWrapped.arrangement());
 // }
 
 
-void PolygonSet2::Clear(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::Clear(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-        polySet.clear();
-        info.GetReturnValue().SetUndefined();
-        return;
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    mWrapped.clear();
+    return info.Env().Undefined();
 }
 
 
-void PolygonSet2::Insert(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::Insert(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
 
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-
-        ARGS_ASSERT(isolate, info.Length() == 1);
-
-        Polygon_2 poly;
-        if (Polygon2::ParseArg(isolate, info[0], poly)) {
-            polySet.insert(poly);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_with_holes_2 pwh;
-        if (PolygonWithHoles2::ParseArg(isolate, info[0], pwh)) {
-            polySet.insert(pwh);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        ARGS_ASSERT(isolate, false);
-
+    Polygon_2 poly;
+    if (Polygon2::ParseArg(env, info[0], poly)) {
+        mWrapped.insert(poly);
+        return env.Undefined();
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
+    Polygon_with_holes_2 pwh;
+    if (PolygonWithHoles2::ParseArg(env, info[0], pwh)) {
+        mWrapped.insert(pwh);
+        return env.Undefined();
     }
+
+    ARGS_ASSERT(env, false);
 }
 
 
-void PolygonSet2::Complement(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::Complement(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-        polySet.complement();
-        info.GetReturnValue().SetUndefined();
-        return;
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    mWrapped.complement();
+    return info.Env().Undefined();
 }
 
 
-void PolygonSet2::Intersection(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::Intersection(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
 
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-
-        ARGS_ASSERT(isolate, info.Length() == 1);
-
-        Polygon_2 poly;
-        if (Polygon2::ParseArg(isolate, info[0], poly)) {
-            polySet.intersection(poly);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_with_holes_2 pwh;
-        if (PolygonWithHoles2::ParseArg(isolate, info[0], pwh)) {
-            polySet.intersection(pwh);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_set_2 polySet2;
-        if (PolygonSet2::ParseArg(isolate, info[0], polySet2)) {
-            polySet.intersection(polySet2);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        ARGS_ASSERT(isolate, false);
-
+    Polygon_2 poly;
+    if (Polygon2::ParseArg(env, info[0], poly)) {
+        mWrapped.intersection(poly);
+        return env.Undefined();
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
+    Polygon_with_holes_2 pwh;
+    if (PolygonWithHoles2::ParseArg(env, info[0], pwh)) {
+        mWrapped.intersection(pwh);
+        return env.Undefined();
     }
+
+    Polygon_set_2 polySet2;
+    if (PolygonSet2::ParseArg(env, info[0], polySet2)) {
+        mWrapped.intersection(polySet2);
+        return env.Undefined();
+    }
+
+    ARGS_ASSERT(env, false);
 }
 
 
-void PolygonSet2::Join(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::Join(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
 
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-
-        ARGS_ASSERT(isolate, info.Length() == 1);
-
-        Polygon_2 poly;
-        if (Polygon2::ParseArg(isolate, info[0], poly)) {
-            polySet.join(poly);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_with_holes_2 pwh;
-        if (PolygonWithHoles2::ParseArg(isolate, info[0], pwh)) {
-            polySet.join(pwh);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_set_2 polySet2;
-        if (PolygonSet2::ParseArg(isolate, info[0], polySet2)) {
-            polySet.join(polySet2);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        ARGS_ASSERT(isolate, false);
-
+    Polygon_2 poly;
+    if (Polygon2::ParseArg(env, info[0], poly)) {
+        mWrapped.join(poly);
+        return env.Undefined();
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
+    Polygon_with_holes_2 pwh;
+    if (PolygonWithHoles2::ParseArg(env, info[0], pwh)) {
+        mWrapped.join(pwh);
+        return env.Undefined();
     }
+
+    Polygon_set_2 polySet2;
+    if (PolygonSet2::ParseArg(env, info[0], polySet2)) {
+        mWrapped.join(polySet2);
+        return env.Undefined();
+    }
+
+    ARGS_ASSERT(env, false);
 }
 
 
-void PolygonSet2::Difference(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::Difference(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
 
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-
-        ARGS_ASSERT(isolate, info.Length() == 1);
-
-        Polygon_2 poly;
-        if (Polygon2::ParseArg(isolate, info[0], poly)) {
-            polySet.difference(poly);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_with_holes_2 pwh;
-        if (PolygonWithHoles2::ParseArg(isolate, info[0], pwh)) {
-            polySet.difference(pwh);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_set_2 polySet2;
-        if (PolygonSet2::ParseArg(isolate, info[0], polySet2)) {
-            polySet.difference(polySet2);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        ARGS_ASSERT(isolate, false);
-
+    Polygon_2 poly;
+    if (Polygon2::ParseArg(env, info[0], poly)) {
+        mWrapped.difference(poly);
+        return env.Undefined();
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
+    Polygon_with_holes_2 pwh;
+    if (PolygonWithHoles2::ParseArg(env, info[0], pwh)) {
+        mWrapped.difference(pwh);
+        return env.Undefined();
     }
+
+    Polygon_set_2 polySet2;
+    if (PolygonSet2::ParseArg(env, info[0], polySet2)) {
+        mWrapped.difference(polySet2);
+        return env.Undefined();
+    }
+
+    ARGS_ASSERT(env, false);
 }
 
 
-void PolygonSet2::SymmetricDifference(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::SymmetricDifference(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
 
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-
-        ARGS_ASSERT(isolate, info.Length() == 1);
-
-        Polygon_2 poly;
-        if (Polygon2::ParseArg(isolate, info[0], poly)) {
-            polySet.symmetric_difference(poly);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_with_holes_2 pwh;
-        if (PolygonWithHoles2::ParseArg(isolate, info[0], pwh)) {
-            polySet.symmetric_difference(pwh);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        Polygon_set_2 polySet2;
-        if (PolygonSet2::ParseArg(isolate, info[0], polySet2)) {
-            polySet.symmetric_difference(polySet2);
-            info.GetReturnValue().SetUndefined();
-            return;
-        }
-
-        ARGS_ASSERT(isolate, false);
-
+    Polygon_2 poly;
+    if (Polygon2::ParseArg(env, info[0], poly)) {
+        mWrapped.symmetric_difference(poly);
+        return env.Undefined();
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
+    Polygon_with_holes_2 pwh;
+    if (PolygonWithHoles2::ParseArg(env, info[0], pwh)) {
+        mWrapped.symmetric_difference(pwh);
+        return env.Undefined();
     }
+
+    Polygon_set_2 polySet2;
+    if (PolygonSet2::ParseArg(env, info[0], polySet2)) {
+        mWrapped.symmetric_difference(polySet2);
+        return env.Undefined();
+    }
+
+    ARGS_ASSERT(env, false);
 }
 
 
-void PolygonSet2::Intersects(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::Intersects(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
 
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-
-        ARGS_ASSERT(isolate, info.Length() == 1);
-
-        Polygon_2 poly;
-        if (Polygon2::ParseArg(isolate, info[0], poly)) {
-            info.GetReturnValue().Set(Boolean::New(isolate, polySet.do_intersect(poly)));
-            return;
-        }
-
-        Polygon_with_holes_2 pwh;
-        if (PolygonWithHoles2::ParseArg(isolate, info[0], pwh)) {
-            info.GetReturnValue().Set(Boolean::New(isolate, polySet.do_intersect(pwh)));
-            return;
-        }
-
-        Polygon_set_2 polySet2;
-        if (PolygonSet2::ParseArg(isolate, info[0], polySet2)) {
-            info.GetReturnValue().Set(Boolean::New(isolate, polySet.do_intersect(polySet2)));
-            return;
-        }
-
-        ARGS_ASSERT(isolate, false);
-
+    Polygon_2 poly;
+    if (Polygon2::ParseArg(env, info[0], poly)) {
+        return Napi::Boolean::New(env, mWrapped.do_intersect(poly));
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
+    Polygon_with_holes_2 pwh;
+    if (PolygonWithHoles2::ParseArg(env, info[0], pwh)) {
+        return Napi::Boolean::New(env, mWrapped.do_intersect(pwh));
     }
+
+    Polygon_set_2 polySet2;
+    if (PolygonSet2::ParseArg(env, info[0], polySet2)) {
+        return Napi::Boolean::New(env, mWrapped.do_intersect(polySet2));
+    }
+
+    ARGS_ASSERT(env, false);
 }
 
 
-// void PolygonSet2::Locate(const FunctionCallbackInfo<Value> &info)
+// Napi::Value PolygonSet2::Locate(Napi::CallbackInfo const& info)
 // {
-//     Isolate *isolate = info.GetIsolate();
-//     HandleScope scope(isolate);
-//     try {
 //         Polygon_set_2 &polySet = ExtractWrapped(info.This());
-//         ARGS_ASSERT(isolate, info.Length() == 2);
-//         ARGS_PARSE_LOCAL(isolate, Point2::ParseArg, Point_2, point, info[0]);
-//         ARGS_PARSE_LOCAL(isolate, PolygonWithHoles2::ParseArg, Polygon_with_holes_2, pwh, info[1]);
-//         info.GetReturnValue().Set(Boolean::New(isolate, polySet.locate(point, pwh)));
-//     }
-//     catch (const exception &e) {
-//         isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-//     }
+//         ARGS_ASSERT(env, info.Length() == 2);
+//         ARGS_PARSE_LOCAL(env, Point2::ParseArg, Point_2, point, info[0]);
+//         ARGS_PARSE_LOCAL(env, PolygonWithHoles2::ParseArg, Polygon_with_holes_2, pwh, info[1]);
+//         info.GetReturnValue().Set(Boolean::New(env, mWrapped.locate(point, pwh)));
 // }
 
 
-void PolygonSet2::OrientedSide(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::OrientedSide(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
 
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-
-        ARGS_ASSERT(isolate, info.Length() == 1);
-
-        Point_2 point;
-        if (Point2::ParseArg(isolate, info[0], point)) {
-            info.GetReturnValue().Set(Number::New(isolate, polySet.oriented_side(point)));
-            return;
-        }
-
-        Polygon_2 poly;
-        if (Polygon2::ParseArg(isolate, info[0], poly)) {
-            info.GetReturnValue().Set(Number::New(isolate, polySet.oriented_side(poly)));
-            return;
-        }
-
-        Polygon_with_holes_2 pwh;
-        if (PolygonWithHoles2::ParseArg(isolate, info[0], pwh)) {
-            info.GetReturnValue().Set(Number::New(isolate, polySet.oriented_side(pwh)));
-            return;
-        }
-
-        Polygon_set_2 polySet2;
-        if (PolygonSet2::ParseArg(isolate, info[0], polySet2)) {
-            info.GetReturnValue().Set(Number::New(isolate, polySet.oriented_side(polySet2)));
-            return;
-        }
-
-        ARGS_ASSERT(isolate, false);
-
+    Point_2 point;
+    if (Point2::ParseArg(env, info[0], point)) {
+        return Napi::Number::New(env, mWrapped.oriented_side(point));
     }
 
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
+    Polygon_2 poly;
+    if (Polygon2::ParseArg(env, info[0], poly)) {
+        return Napi::Number::New(env, mWrapped.oriented_side(poly));
     }
+
+    Polygon_with_holes_2 pwh;
+    if (PolygonWithHoles2::ParseArg(env, info[0], pwh)) {
+        return Napi::Number::New(env, mWrapped.oriented_side(pwh));
+    }
+
+    Polygon_set_2 polySet2;
+    if (PolygonSet2::ParseArg(env, info[0], polySet2)) {
+        return Napi::Number::New(env, mWrapped.oriented_side(polySet2));
+    }
+
+    ARGS_ASSERT(env, false);
 }
 
 
-void PolygonSet2::IsValid(const FunctionCallbackInfo<Value> &info)
+Napi::Value PolygonSet2::IsValid(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Polygon_set_2 &polySet = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, polySet.is_valid()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_valid());
 }

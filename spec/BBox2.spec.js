@@ -5,8 +5,8 @@ describe("CGAL.BBox2", function() {
 
     it("should be constructable from limits", function() {
         expect(function() { return new CGAL.BBox2({xmin:1, ymin:2, xmax:3, ymax:4}); }).not.toThrow();
-        expect(function() { return new CGAL.Line2({xmin:1, ymin:3, xmax:3}); }).toThrow();
-        expect(function() { return new CGAL.Line2({xmin:"foo", ymin:2, xmax:3, ymax:4}); }).toThrow();
+        expect(function() { return new CGAL.BBox2({xmin:1, ymin:3, xmax:3}); }).toThrow();
+        expect(function() { return new CGAL.BBox2({xmin:"foo", ymin:2, xmax:3, ymax:4}); }).toThrow();
     });
 
     it("should be renderable via toPOD", function() {

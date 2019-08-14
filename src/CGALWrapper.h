@@ -2,47 +2,41 @@
 #define CGALWRAPPER_H
 
 #include "cgal_types.h"
-#include "node.h"
-#include "node_object_wrap.h"
-#include "v8.h"
+#include "napi.h"
 
 
 template<typename WrapperClass, typename CGALClass>
-class CGALWrapper : public node::ObjectWrap
+class CGALWrapper : public Napi::ObjectWrap<WrapperClass>
 {
 public:
 
-    CGALWrapper();
+    CGALWrapper(Napi::CallbackInfo const& info);
     virtual ~CGALWrapper();
 
-    template<typename ParentScope>
-    static void Init(v8::Local<ParentScope> exports);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
-    static v8::Local<v8::Value> New(v8::Isolate *isolate, const CGALClass &CGALInstance);
+    static Napi::Object New(Napi::Env env, const CGALClass &CGALInstance);
 
-    template<typename NumberPrimitive>
-    static bool ParseArg(v8::Isolate *isolate, v8::Local<v8::Value> arg, NumberPrimitive &parsed);
+    template<typename NumberType>
+    static bool ParseNumberArg(Napi::Env env, Napi::Value arg, NumberType& parsed);
 
     template<typename OutputIterator>
-    static bool ParseSeqArg(v8::Isolate *isolate, v8::Local<v8::Value> arg, OutputIterator iterator);
+    static bool ParseSeqArg(Napi::Env env, Napi::Value arg, OutputIterator iterator);
 
     template<typename ForwardIterator>
-    static v8::Local<v8::Value> SeqToPOD(
-        v8::Isolate *isolate, ForwardIterator first, ForwardIterator last, bool precise
+    static Napi::Value SeqToPOD(
+        Napi::Env env, ForwardIterator first, ForwardIterator last, bool precise
     );
 
 protected:
 
     CGALClass mWrapped;
 
-    static v8::Global<v8::FunctionTemplate> sConstructorTemplate;
+    static Napi::FunctionReference sConstructor;
 
-    static CGALClass &ExtractWrapped(v8::Local<v8::Object> obj);
-
-    static void New(const v8::FunctionCallbackInfo<v8::Value> &args);
-    static void ToPOD(const v8::FunctionCallbackInfo<v8::Value> &args);
-    static void Inspect(const v8::FunctionCallbackInfo<v8::Value> &args);
-    static void ToString(const v8::FunctionCallbackInfo<v8::Value> &args);
+    Napi::Value ToPOD(Napi::CallbackInfo const& info);
+    Napi::Value Inspect(Napi::CallbackInfo const& info);
+    Napi::Value ToString(Napi::CallbackInfo const& info);
 
 };
 

@@ -1,68 +1,65 @@
 #include "Line2.h"
 #include "Point2.h"
-#include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
+
+
+Line2::Line2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
+{
+}
 
 
 const char *Line2::Name = "Line2";
 
 
-void Line2::RegisterMethods(Isolate *isolate)
+void Line2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isEqual", IsEqual);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isDegenerate", IsDegenerate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isHorizontal", IsHorizontal);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isVertical", IsVertical);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "opposite", Opposite);
+    properties.insert(properties.end(), {
+        InstanceMethod("isEqual", &Line2::IsEqual),
+        InstanceMethod("isDegenerate", &Line2::IsDegenerate),
+        InstanceMethod("isHorizontal", &Line2::IsHorizontal),
+        InstanceMethod("isVertical", &Line2::IsVertical),
+        InstanceMethod("opposite", &Line2::Opposite)
+    });
 }
 
 
-bool Line2::ParseArg(Isolate *isolate, Local<Value> arg, Line_2 &receiver)
+bool Line2::ParseArg(Napi::Env env, Napi::Value arg, Line_2& receiver)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
+    if (arg.IsObject()) {
+        Napi::Object obj = arg.As<Napi::Object>();
 
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
-        return true;
-    }
-
-    if (arg->IsObject()) {
-        Local<Object> inits = Local<Object>::Cast(arg);
+        if (obj.InstanceOf(sConstructor.Value())) {
+            receiver = Unwrap(obj)->mWrapped;
+            return true;
+        }
 
         K::FT a, b, c;
-        if (::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "a")).ToLocalChecked(), a) &&
-            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "b")).ToLocalChecked(), b) &&
-            ::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "c")).ToLocalChecked(), c))
+        if (::ParseNumberArg(env, obj["a"], a) &&
+            ::ParseNumberArg(env, obj["b"], b) &&
+            ::ParseNumberArg(env, obj["c"], c))
         {
             receiver = Line_2(a, b, c);
             return true;
         }
 
         Point_2 p, q;
-        if (Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "p")).ToLocalChecked(), p) &&
-            Point2::ParseArg(isolate, inits->Get(context, SYMBOL(isolate, "q")).ToLocalChecked(), q))
+        if (Point2::ParseArg(env, obj["p"], p) &&
+            Point2::ParseArg(env, obj["q"], q))
         {
             receiver = Line_2(p, q);
             return true;
         }
-
     }
 
     return false;
 }
 
 
-Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
+Napi::Value Line2::ToPOD(Napi::Env env, Line_2 const& line, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Object> obj = Object::New(isolate);
+    Napi::Object obj = Napi::Object::New(env);
 
     if (precise) {
 
@@ -72,103 +69,62 @@ Local<Value> Line2::ToPOD(Isolate *isolate, const Line_2 &line, bool precise)
 #else
         astr << setprecision(20) << line.a();
 #endif
-        obj->Set(context, SYMBOL(isolate, "a"), String::NewFromUtf8(isolate, astr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
-
+        obj.Set("a", astr.str());
         ostringstream bstr;
 #if CGAL_USE_EPECK
         bstr << line.b().exact();
 #else
         bstr << setprecision(20) << line.b();
 #endif
-        obj->Set(context, SYMBOL(isolate, "b"), String::NewFromUtf8(isolate, bstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
-
+        obj.Set("b", bstr.str());
         ostringstream cstr;
 #if CGAL_USE_EPECK
         cstr << line.c().exact();
 #else
         cstr << setprecision(20) << line.c();
 #endif
-        obj->Set(context, SYMBOL(isolate, "c"), String::NewFromUtf8(isolate, cstr.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+        obj.Set("c", cstr.str());
 
     } else {
 
-        obj->Set(context, SYMBOL(isolate, "a"), Number::New(isolate, CGAL::to_double(line.a())));
-        obj->Set(context, SYMBOL(isolate, "b"), Number::New(isolate, CGAL::to_double(line.b())));
-        obj->Set(context, SYMBOL(isolate, "c"), Number::New(isolate, CGAL::to_double(line.c())));
+        obj.Set("a", CGAL::to_double(line.a()));
+        obj.Set("b", CGAL::to_double(line.b()));
+        obj.Set("c", CGAL::to_double(line.c()));
 
     }
 
-    return scope.Escape(obj);
+    return obj;
 }
 
 
-void Line2::IsEqual(const FunctionCallbackInfo<Value> &info)
+Napi::Value Line2::IsEqual(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Line_2 &thisLine = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, Line2::ParseArg, Line_2, otherLine, info[0]);
-        info.GetReturnValue().Set(Boolean::New(isolate, thisLine == otherLine));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, Line2::ParseArg, Line_2, otherLine, info[0]);
+    return Napi::Boolean::New(env, mWrapped == otherLine);
 }
 
 
-void Line2::IsDegenerate(const FunctionCallbackInfo<Value> &info)
+Napi::Value Line2::IsDegenerate(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Line_2 &line = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, line.is_degenerate()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_degenerate());
 }
 
 
-void Line2::IsHorizontal(const FunctionCallbackInfo<Value> &info)
+Napi::Value Line2::IsHorizontal(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Line_2 &line = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, line.is_horizontal()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_horizontal());
 }
 
 
-void Line2::IsVertical(const FunctionCallbackInfo<Value> &info)
+Napi::Value Line2::IsVertical(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Line_2 &line = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, line.is_vertical()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped.is_vertical());
 }
 
 
-void Line2::Opposite(const FunctionCallbackInfo<Value> &info)
+Napi::Value Line2::Opposite(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Line_2 &line = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Line2::New(isolate, line.opposite()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Line2::New(info.Env(), mWrapped.opposite());
 }

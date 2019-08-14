@@ -1,8 +1,8 @@
 #ifndef NODE_CGAL_H
 #define NODE_CGAL_H
 
-#include "node.h"
+#include "napi.h"
 
-void init(v8::Local<v8::Object> exports);
+Napi::Object Init(Napi::Env env, Napi::Object exports);
 
 #endif

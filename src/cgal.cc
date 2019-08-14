@@ -1,8 +1,6 @@
 #include "cgal.h"
-#include "cgal_args.h"
+#include "CGAL/assertions_behaviour.h"
 #include "cgal_types.h"
-#include "node.h"
-#include "v8.h"
 #include "AffTransformation2.h"
 #include "Arrangement2.h"
 #include "BBox2.h"
@@ -19,116 +17,88 @@
 #include "Segment2.h"
 #include "Vector2.h"
 
-using namespace std;
-using namespace v8;
+#include <functional>
+#include <string>
 
+using namespace std;
 
 namespace {
 
-    enum {
-        NEGATIVE = CGAL::NEGATIVE,
-        ZERO = CGAL::ZERO,
-        POSITIVE = CGAL::POSITIVE,
-        RIGHT_TURN = CGAL::RIGHT_TURN,
-        LEFT_TURN = CGAL::LEFT_TURN,
-        CLOCKWISE = CGAL::CLOCKWISE,
-        COUNTERCLOCKWISE = CGAL::COUNTERCLOCKWISE,
-        COLLINEAR = CGAL::COLLINEAR,
-        COPLANAR = CGAL::COPLANAR,
-        DEGENERATE = CGAL::DEGENERATE,
-        ON_NEGATIVE_SIDE = CGAL::ON_NEGATIVE_SIDE,
-        ON_ORIENTED_BOUNDARY = CGAL::ON_ORIENTED_BOUNDARY,
-        ON_POSITIVE_SIDE = CGAL::ON_POSITIVE_SIDE,
-        SMALLER = CGAL::SMALLER,
-        EQUAL = CGAL::EQUAL,
-        LARGER = CGAL::LARGER,
-        ON_UNBOUNDED_SIDE = CGAL::ON_UNBOUNDED_SIDE,
-        ON_BOUNDARY = CGAL::ON_BOUNDARY,
-        ON_BOUNDED_SIDE = CGAL::ON_BOUNDED_SIDE,
-        OBTUSE = CGAL::OBTUSE,
-        RIGHT = CGAL::RIGHT,
-        ACUTE = CGAL::ACUTE,
-        ARR_LEFT_BOUNDARY = CGAL::ARR_LEFT_BOUNDARY,
-        ARR_RIGHT_BOUNDARY = CGAL::ARR_RIGHT_BOUNDARY,
-        ARR_BOTTOM_BOUNDARY = CGAL::ARR_BOTTOM_BOUNDARY,
-        ARR_TOP_BOUNDARY = CGAL::ARR_TOP_BOUNDARY,
-        ARR_INTERIOR = CGAL::ARR_INTERIOR
+    function<void (char const*, char const*, char const*, int, char const*)> handle_cgal_error;
+
+    void cgal_error_handler(
+        const char *type,
+        const char *expression,
+        const char *file,
+        int line,
+        const char *explanation)
+    {
+        return handle_cgal_error(type, expression, file, line, explanation);
+    }
+
+}
+
+Napi::Object Init(Napi::Env env, Napi::Object exports)
+{
+    handle_cgal_error = [env](
+        const char *type,
+        const char *expression,
+        const char *file,
+        int line,
+        const char *explanation)
+    {
+        throw Napi::Error::New(env, string(type) + " " + expression + " " + explanation);
     };
 
+    CGAL::set_error_handler(cgal_error_handler);
+
+    exports.Set("NEGATIVE", (int)CGAL::NEGATIVE);
+    exports.Set("ZERO", (int)CGAL::ZERO);
+    exports.Set("POSITIVE", (int)CGAL::POSITIVE);
+    exports.Set("RIGHT_TURN", (int)CGAL::RIGHT_TURN);
+    exports.Set("LEFT_TURN", (int)CGAL::LEFT_TURN);
+    exports.Set("CLOCKWISE", (int)CGAL::CLOCKWISE);
+    exports.Set("COUNTERCLOCKWISE", (int)CGAL::COUNTERCLOCKWISE);
+    exports.Set("COLLINEAR", (int)CGAL::COLLINEAR);
+    exports.Set("COPLANAR", (int)CGAL::COPLANAR);
+    exports.Set("DEGENERATE", (int)CGAL::DEGENERATE);
+    exports.Set("ON_NEGATIVE_SIDE", (int)CGAL::ON_NEGATIVE_SIDE);
+    exports.Set("ON_ORIENTED_BOUNDARY", (int)CGAL::ON_ORIENTED_BOUNDARY);
+    exports.Set("ON_POSITIVE_SIDE", (int)CGAL::ON_POSITIVE_SIDE);
+    exports.Set("SMALLER", (int)CGAL::SMALLER);
+    exports.Set("EQUAL", (int)CGAL::EQUAL);
+    exports.Set("LARGER", (int)CGAL::LARGER);
+    exports.Set("ON_UNBOUNDED_SIDE", (int)CGAL::ON_UNBOUNDED_SIDE);
+    exports.Set("ON_BOUNDARY", (int)CGAL::ON_BOUNDARY);
+    exports.Set("ON_BOUNDED_SIDE", (int)CGAL::ON_BOUNDED_SIDE);
+    exports.Set("OBTUSE", (int)CGAL::OBTUSE);
+    exports.Set("RIGHT", (int)CGAL::RIGHT);
+    exports.Set("ACUTE", (int)CGAL::ACUTE);
+    exports.Set("ARR_LEFT_BOUNDARY", (int)CGAL::ARR_LEFT_BOUNDARY);
+    exports.Set("ARR_RIGHT_BOUNDARY", (int)CGAL::ARR_RIGHT_BOUNDARY);
+    exports.Set("ARR_BOTTOM_BOUNDARY", (int)CGAL::ARR_BOTTOM_BOUNDARY);
+    exports.Set("ARR_TOP_BOUNDARY", (int)CGAL::ARR_TOP_BOUNDARY);
+    exports.Set("ARR_INTERIOR", (int)CGAL::ARR_INTERIOR);
+
+    AffTransformation2::Init(env, exports);
+    Arrangement2::Init(env, exports);
+    BBox2::Init(env, exports);
+    Curve2::Init(env, exports);
+    D2::Init(env, exports);
+    Direction2::Init(env, exports);
+    Line2::Init(env, exports);
+    NefPolyhedron2::Init(env, exports);
+    Point2::Init(env, exports);
+    Polygon2::Init(env, exports);
+    PolygonSet2::Init(env, exports);
+    PolygonWithHoles2::Init(env, exports);
+    Ray2::Init(env, exports);
+    Segment2::Init(env, exports);
+    Vector2::Init(env, exports);
+
+    return exports;
 }
 
-
-void init(Local<Object> exports)
-{
-    NODE_DEFINE_CONSTANT(exports, NEGATIVE);
-    NODE_DEFINE_CONSTANT(exports, ZERO);
-    NODE_DEFINE_CONSTANT(exports, POSITIVE);
-    NODE_DEFINE_CONSTANT(exports, RIGHT_TURN);
-    NODE_DEFINE_CONSTANT(exports, LEFT_TURN);
-    NODE_DEFINE_CONSTANT(exports, CLOCKWISE);
-    NODE_DEFINE_CONSTANT(exports, COUNTERCLOCKWISE);
-    NODE_DEFINE_CONSTANT(exports, COLLINEAR);
-    NODE_DEFINE_CONSTANT(exports, COPLANAR);
-    NODE_DEFINE_CONSTANT(exports, DEGENERATE);
-    NODE_DEFINE_CONSTANT(exports, ON_NEGATIVE_SIDE);
-    NODE_DEFINE_CONSTANT(exports, ON_ORIENTED_BOUNDARY);
-    NODE_DEFINE_CONSTANT(exports, ON_POSITIVE_SIDE);
-    NODE_DEFINE_CONSTANT(exports, SMALLER);
-    NODE_DEFINE_CONSTANT(exports, EQUAL);
-    NODE_DEFINE_CONSTANT(exports, LARGER);
-    NODE_DEFINE_CONSTANT(exports, ON_UNBOUNDED_SIDE);
-    NODE_DEFINE_CONSTANT(exports, ON_BOUNDARY);
-    NODE_DEFINE_CONSTANT(exports, ON_BOUNDED_SIDE);
-    NODE_DEFINE_CONSTANT(exports, OBTUSE);
-    NODE_DEFINE_CONSTANT(exports, RIGHT);
-    NODE_DEFINE_CONSTANT(exports, ACUTE);
-    NODE_DEFINE_CONSTANT(exports, ARR_LEFT_BOUNDARY);
-    NODE_DEFINE_CONSTANT(exports, ARR_RIGHT_BOUNDARY);
-    NODE_DEFINE_CONSTANT(exports, ARR_BOTTOM_BOUNDARY);
-    NODE_DEFINE_CONSTANT(exports, ARR_TOP_BOUNDARY);
-    NODE_DEFINE_CONSTANT(exports, ARR_INTERIOR);
-
-    AffTransformation2::Init(exports);
-    Arrangement2::Init(exports);
-    BBox2::Init(exports);
-    Curve2::Init(exports);
-    D2::Init(exports);
-    Direction2::Init(exports);
-    Line2::Init(exports);
-    NefPolyhedron2::Init(exports);
-    Point2::Init(exports);
-    Polygon2::Init(exports);
-    PolygonSet2::Init(exports);
-    PolygonWithHoles2::Init(exports);
-    Ray2::Init(exports);
-    Segment2::Init(exports);
-    Vector2::Init(exports);
-}
-
-
-template<>
-void SetConstructor<Object>(
-    Local<Object> parentScope,
-    Local<String> name,
-    Local<FunctionTemplate> constructor)
-{
-    Isolate *isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    parentScope->Set(context, name, constructor->GetFunction(context).ToLocalChecked());
-}
-
-
-template<>
-void SetConstructor<FunctionTemplate>(
-    Local<FunctionTemplate> parentScope,
-    Local<String> name,
-    Local<FunctionTemplate> constructor)
-{
-    parentScope->Set(name, constructor);
-}
-
-
-NODE_MODULE(cgal, init);
+NODE_API_MODULE(NODE_GYP_MODULE_NAME, Init);
 
 

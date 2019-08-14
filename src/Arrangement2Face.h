@@ -3,30 +3,31 @@
 
 #include "CGALWrapper.h"
 #include "cgal_types.h"
-#include "v8.h"
+#include "napi.h"
 
+#include <vector>
 
 class Arrangement2Face : public CGALWrapper<Arrangement2Face, Arrangement_2::Face_handle>
 {
 public:
 
+    Arrangement2Face(Napi::CallbackInfo const& info);
+
     // The name to be used for our JS class.
     static const char *Name;
 
-    // Add our function templates to the package exports, and return string to be used to name
-    // the class and constructor in JS.  Called indirectly at module load time via the module
+    // Add our property descriptors (instance and static methods and values) to the list that will
+    // be used to define our JS class.  Called indirectly at module load time via the module
     // init function.
-    static void RegisterMethods(v8::Isolate *isolate);
+    static void AddProperties(Napi::Env env, std::vector<PropertyDescriptor>& properties);
 
-    // Attempt to parse a v8 argument into the CGAL object referred to by receiver.  Returns true
+    // Attempt to parse a JS argument into the CGAL object referred to by receiver. Returns true
     // if parse was successful, false otherwise.
-    static bool ParseArg(v8::Isolate *isolate, v8::Local<v8::Value> arg, Arrangement_2::Face_handle &receiver);
+    static bool ParseArg(Napi::Env env, Napi::Value arg, Arrangement_2::Face_handle& receiver);
 
-    // Convert a CGAL object of the wrapped class to a POD v8 object.  If precise is set to false,
+    // Convert a CGAL object of the wrapped class to a POD JS object. If precise is set to false,
     // will attempt to render in terms of doubles for coordinates, and may lose precision.
-    static v8::Local<v8::Value> ToPOD(
-        v8::Isolate *isolate, const Arrangement_2::Face_handle &face, bool precise=true
-    );
+    static Napi::Value ToPOD(Napi::Env env, Arrangement_2::Face_handle const& face, bool precise=true);
 
 private:
 
@@ -35,12 +36,12 @@ private:
     //      the semantics and names of the wrapped CGAL class.
     //
 
-    static void ToString(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsFictitious(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsUnbounded(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void OuterCCB(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void Holes(const v8::FunctionCallbackInfo<v8::Value> &info);
-    static void IsolatedVertices(const v8::FunctionCallbackInfo<v8::Value> &info);
+    Napi::Value ToString(Napi::CallbackInfo const& info);
+    Napi::Value IsFictitious(Napi::CallbackInfo const& info);
+    Napi::Value IsUnbounded(Napi::CallbackInfo const& info);
+    Napi::Value OuterCCB(Napi::CallbackInfo const& info);
+    Napi::Value Holes(Napi::CallbackInfo const& info);
+    Napi::Value IsolatedVertices(Napi::CallbackInfo const& info);
 
 };
 

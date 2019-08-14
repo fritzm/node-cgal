@@ -3,24 +3,25 @@
 
 #include "CGAL/Object.h"
 #include "cgal_args.h"
+#include "napi.h"
+
 #include <sstream>
-
-
-template<typename ParentScope> 
-void SetConstructor(
-    v8::Local<ParentScope> parentScope,
-    v8::Local<v8::String> name,
-    v8::Local<v8::FunctionTemplate> constructor
-);
+#include <vector>
 
 
 template<typename WrapperClass, typename CGALClass>
-v8::Global<v8::FunctionTemplate> CGALWrapper<WrapperClass, CGALClass>::sConstructorTemplate;
+Napi::FunctionReference CGALWrapper<WrapperClass, CGALClass>::sConstructor;
 
 
 template<typename WrapperClass, typename CGALClass>
-CGALWrapper<WrapperClass, CGALClass>::CGALWrapper()
+CGALWrapper<WrapperClass, CGALClass>::CGALWrapper(Napi::CallbackInfo const& info)
+:   Napi::ObjectWrap<WrapperClass>(info) 
 {
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() <= 1);
+    if (info.Length() == 1) {
+        ARGS_ASSERT(env, WrapperClass::ParseArg(env, info[0], mWrapped));
+    }
 }
 
 
@@ -31,108 +32,82 @@ CGALWrapper<WrapperClass, CGALClass>::~CGALWrapper()
 
 
 template<typename WrapperClass, typename CGALClass>
-template<typename ParentScope>
-void CGALWrapper<WrapperClass, CGALClass>::Init(v8::Local<ParentScope> exports)
+Napi::Object CGALWrapper<WrapperClass, CGALClass>::Init(Napi::Env env, Napi::Object exports)
 {
-    v8::Isolate *isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope scope(isolate);
+    std::vector<typename CGALWrapper<WrapperClass, CGALClass>::PropertyDescriptor> properties;
+    WrapperClass::AddProperties(env, properties);
 
-    // In some circumstances, our module init gets called more than once within the same process by
-    // node.  We need to be careful to avoid re-initializing our static constructor template,
-    // otherwise we can get type detection failures against objects constructed with the previous
-    // value.
+    properties.insert(properties.end(), {
+       CGALWrapper::InstanceMethod("toPOD", &CGALWrapper::ToPOD), 
+       CGALWrapper::InstanceMethod("inspect", &CGALWrapper::Inspect), 
+       CGALWrapper::InstanceMethod("toString", &CGALWrapper::ToString) 
+    });
 
-    if (sConstructorTemplate.IsEmpty()) {
+    Napi::Function func = CGALWrapper::DefineClass(env, WrapperClass::Name, properties);
 
-        v8::Local<v8::FunctionTemplate> constructorTemplate
-            = v8::FunctionTemplate::New(isolate, CGALWrapper<WrapperClass, CGALClass>::New);
+    sConstructor = Napi::Persistent(func);
+    sConstructor.SuppressDestruct();
 
-        sConstructorTemplate.Reset(isolate, constructorTemplate);
-
-        NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "toPOD", CGALWrapper<WrapperClass, CGALClass>::ToPOD);
-        NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "inspect", CGALWrapper<WrapperClass, CGALClass>::Inspect);
-        NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "toString", CGALWrapper<WrapperClass, CGALClass>::ToString);
-
-        WrapperClass::RegisterMethods(isolate);
-
-        constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        constructorTemplate->SetClassName(v8::String::NewFromUtf8(isolate, WrapperClass::Name, v8::NewStringType::kInternalized).ToLocalChecked());
-
-    }
-
-    SetConstructor(
-        exports,
-        v8::String::NewFromUtf8(isolate, WrapperClass::Name, v8::NewStringType::kInternalized).ToLocalChecked(),
-        sConstructorTemplate.Get(isolate)
-    );
+    exports.Set(WrapperClass::Name, func);
+    return exports;
 }
 
 
 template<typename WrapperClass, typename CGALClass>
-v8::Local<v8::Value> CGALWrapper<WrapperClass, CGALClass>::New(v8::Isolate *isolate, const CGALClass &CGALInstance)
+Napi::Object CGALWrapper<WrapperClass, CGALClass>::New(Napi::Env env, const CGALClass &CGALInstance)
 {
-    v8::EscapableHandleScope scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> wrapper = sConstructorTemplate.Get(isolate)
-        ->GetFunction(context).ToLocalChecked()
-        ->NewInstance(context).ToLocalChecked();
-    CGALClass &wrapped = ExtractWrapped(wrapper);
-    wrapped = CGALInstance;
-    return scope.Escape(wrapper);
+    Napi::Object obj = sConstructor.New({});
+    CGALWrapper::Unwrap(obj)->mWrapped = CGALInstance;
+    return obj;
 }
 
 
-template<typename NumberPrimitive>
-bool ParseArg(v8::Isolate *isolate, v8::Local<v8::Value> obj, NumberPrimitive &parsed)
+template<typename NumberType>
+bool ParseNumberArg(Napi::Env env, Napi::Value arg, NumberType& parsed)
 {
-    v8::HandleScope scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    if (obj->IsNumber()) {
-        parsed = obj->NumberValue(context).ToChecked();
+    if (arg.IsNumber()) {
+        parsed = arg.As<Napi::Number>();
         return true;
-    } else if (obj->IsString()) {
-        std::istringstream str(*v8::String::Utf8Value(isolate, obj));
+    } else if (arg.IsString()) {
+        std::istringstream str(arg.As<Napi::String>());
         str >> parsed;
         return !str.fail();
     } else {
         return false;
     }
+    return false;
 }
 
 
 template<typename WrapperClass, typename CGALClass>
 template<typename ForwardIterator>
-v8::Local<v8::Value> CGALWrapper<WrapperClass, CGALClass>::SeqToPOD(
-    v8::Isolate *isolate,
+Napi::Value CGALWrapper<WrapperClass, CGALClass>::SeqToPOD(
+    Napi::Env env,
     ForwardIterator first, ForwardIterator last,
     bool precise)
 {
-    v8::EscapableHandleScope scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Array> array = v8::Array::New(isolate);
+    Napi::Array array = Napi::Array::New(env);
     ForwardIterator it;
     uint32_t i;
     for(it=first,i=0; it!=last; ++it,++i) {
-        array->Set(context, i, WrapperClass::ToPOD(isolate, *it, precise));
+        array[i] = WrapperClass::ToPOD(env, *it, precise);
     }
-    return scope.Escape(array);
+    return array;
 }
 
 
 template<typename WrapperClass, typename CGALClass>
 template<typename OutputIterator>
 bool CGALWrapper<WrapperClass, CGALClass>::ParseSeqArg(
-    v8::Isolate *isolate,
-    v8::Local<v8::Value> arg,
+    Napi::Env env,
+    Napi::Value arg,
     OutputIterator iterator)
 {
-    v8::HandleScope scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    if (!arg->IsArray()) return false;
-    v8::Local<v8::Array> wrappers = v8::Local<v8::Array>::Cast(arg);
-    for(uint32_t i=0; i<wrappers->Length(); ++i) {
+    if (!arg.IsObject()) return false;
+    Napi::Array wrappers = arg.As<Napi::Array>();
+    for(uint32_t i=0; i<wrappers.Length(); ++i) {
         CGALClass newCGALInstance;
-        if (WrapperClass::ParseArg(isolate, wrappers->Get(context, i).ToLocalChecked(), newCGALInstance)) {
+        if (WrapperClass::ParseArg(env, wrappers[i], newCGALInstance)) {
             *(iterator++) = newCGALInstance;
         } else {
             return false;
@@ -143,68 +118,36 @@ bool CGALWrapper<WrapperClass, CGALClass>::ParseSeqArg(
 
 
 template<typename WrapperClass, typename CGALClass>
-CGALClass &CGALWrapper<WrapperClass, CGALClass>::ExtractWrapped(v8::Local<v8::Object> obj)
+Napi::Value CGALWrapper<WrapperClass, CGALClass>::ToPOD(Napi::CallbackInfo const& info)
 {
-    return node::ObjectWrap::Unwrap<WrapperClass>(obj)->mWrapped;
-}
+    Napi::Env env = info.Env();
 
-
-template<typename WrapperClass, typename CGALClass>
-void CGALWrapper<WrapperClass, CGALClass>::New(const v8::FunctionCallbackInfo<v8::Value> &info)
-{
-    v8::Isolate *isolate = info.GetIsolate();
-
-    ARGS_ASSERT(isolate, info.Length() <= 1);
-
-    WrapperClass *wrapper = new WrapperClass();
-
-    if (info.Length() == 1) {
-        ARGS_ASSERT(isolate, WrapperClass::ParseArg(isolate, info[0], wrapper->mWrapped));
-    }
-
-    wrapper->Wrap(info.This());
-
-    info.GetReturnValue().Set(info.This());
-}
-
-
-template<typename WrapperClass, typename CGALClass>
-void CGALWrapper<WrapperClass, CGALClass>::ToPOD(const v8::FunctionCallbackInfo<v8::Value> &info)
-{
-    v8::Isolate *isolate = info.GetIsolate();
-    v8::HandleScope scope(isolate);
-    WrapperClass *wrapper = ObjectWrap::Unwrap<WrapperClass>(info.This());
-    ARGS_ASSERT(isolate, info.Length() <= 1)
+    ARGS_ASSERT(env, info.Length() <= 1)
 
     bool precise = true;
     if (info.Length() == 1) {
-        ARGS_ASSERT(isolate, info[0]->IsBoolean())
-        precise = info[0]->BooleanValue(isolate);
+        ARGS_ASSERT(env, info[0].IsBoolean())
+        precise = info[0].As<Napi::Boolean>();
     }
 
-    info.GetReturnValue().Set(WrapperClass::ToPOD(isolate, wrapper->mWrapped, precise));
+    return WrapperClass::ToPOD(env, mWrapped, precise);
 }
 
 
 template<typename WrapperClass, typename CGALClass>
-void CGALWrapper<WrapperClass, CGALClass>::Inspect(const v8::FunctionCallbackInfo<v8::Value> &info)
+Napi::Value CGALWrapper<WrapperClass, CGALClass>::Inspect(Napi::CallbackInfo const& info)
 {
-    v8::Isolate *isolate = info.GetIsolate();
-    v8::HandleScope scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    info.GetReturnValue().Set(info.This()->ToString(context).ToLocalChecked());
+    return info.This().ToString();
 }
 
 
 template<typename WrapperClass, typename CGALClass>
-void CGALWrapper<WrapperClass, CGALClass>::ToString(const v8::FunctionCallbackInfo<v8::Value> &info)
+Napi::Value CGALWrapper<WrapperClass, CGALClass>::ToString(Napi::CallbackInfo const& info)
 {
-    v8::Isolate *isolate = info.GetIsolate();
-    v8::HandleScope scope(isolate);
-    CGALClass &wrapped = ExtractWrapped(info.This());
+    Napi::Env env = info.Env();
     std::ostringstream str;
-    str << "[object "  << WrapperClass::Name << " " << wrapped << "]";
-    info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, str.str().c_str(), v8::NewStringType::kNormal).ToLocalChecked());
+    str << "[object "  << WrapperClass::Name << " " << mWrapped << "]";
+    return Napi::String::New(env, str.str());
 }
 
 

@@ -1,96 +1,80 @@
 #include "BBox2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
 
 
-const char *BBox2::Name = "BBox2";
-
-
-void BBox2::RegisterMethods(Isolate *isolate)
+BBox2::BBox2(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "overlaps", Overlaps);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "add", Add);
 }
 
 
-bool BBox2::ParseArg(Isolate *isolate, Local<Value> arg, Bbox_2 &receiver)
+char const* BBox2::Name = "BBox2";
+
+
+void BBox2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
 {
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
+    properties.insert(properties.end(), {
+        InstanceMethod("overlaps", &BBox2::Overlaps),
+        InstanceMethod("add", &BBox2::Add)
+    });
+}
 
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
-        return true;
-    }
 
-    if (arg->IsObject()) {
-        Local<Object> bounds = Local<Object>::Cast(arg);
+bool BBox2::ParseArg(Napi::Env env, Napi::Value arg, Bbox_2& receiver)
+{
+    if (arg.IsObject()) {
+        Napi::Object obj = arg.As<Napi::Object>();
 
-        if (bounds->Get(context, SYMBOL(isolate, "xmin")).ToLocalChecked()->IsNumber() &&
-            bounds->Get(context, SYMBOL(isolate, "ymin")).ToLocalChecked()->IsNumber() &&
-            bounds->Get(context, SYMBOL(isolate, "xmax")).ToLocalChecked()->IsNumber() &&
-            bounds->Get(context, SYMBOL(isolate, "ymax")).ToLocalChecked()->IsNumber())
-        {
-            receiver = Bbox_2(
-                bounds->Get(context, SYMBOL(isolate, "xmin")).ToLocalChecked()->NumberValue(context).ToChecked(),
-                bounds->Get(context, SYMBOL(isolate, "ymin")).ToLocalChecked()->NumberValue(context).ToChecked(),
-                bounds->Get(context, SYMBOL(isolate, "xmax")).ToLocalChecked()->NumberValue(context).ToChecked(),
-                bounds->Get(context, SYMBOL(isolate, "ymax")).ToLocalChecked()->NumberValue(context).ToChecked()
-            );
+        if (obj.InstanceOf(sConstructor.Value())) {
+            receiver = Unwrap(obj)->mWrapped;
             return true;
         }
 
+        if (obj.Get("xmin").IsNumber() &&
+            obj.Get("ymin").IsNumber() &&
+            obj.Get("xmax").IsNumber() &&
+            obj.Get("ymax").IsNumber())
+        {
+            receiver = Bbox_2(
+                obj.Get("xmin").As<Napi::Number>(),
+                obj.Get("ymin").As<Napi::Number>(),
+                obj.Get("xmax").As<Napi::Number>(),
+                obj.Get("ymax").As<Napi::Number>()
+            );
+            return true;
+        }
     }
 
     return false;
 }
 
 
-Local<Value> BBox2::ToPOD(Isolate *isolate, const Bbox_2 &box, bool precise)
+Napi::Value BBox2::ToPOD(Napi::Env env, Bbox_2 const& box, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    Local<Object> obj = Object::New(isolate);
-    obj->Set(context, SYMBOL(isolate, "xmin"), Number::New(isolate, box.xmin()));
-    obj->Set(context, SYMBOL(isolate, "ymin"), Number::New(isolate, box.ymin()));
-    obj->Set(context, SYMBOL(isolate, "xmax"), Number::New(isolate, box.xmax()));
-    obj->Set(context, SYMBOL(isolate, "ymax"), Number::New(isolate, box.ymax()));
-    return scope.Escape(obj);
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set("xmin", box.xmin());
+    obj.Set("ymin", box.ymin());
+    obj.Set("xmax", box.xmax());
+    obj.Set("ymax", box.ymax());
+    return obj;
 }
 
 
-void BBox2::Overlaps(const v8::FunctionCallbackInfo<v8::Value> &info)
+Napi::Value BBox2::Overlaps(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Bbox_2 &thisBox = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, BBox2::ParseArg, Bbox_2, otherBox, info[0]);
-        return info.GetReturnValue().Set(Boolean::New(isolate, do_overlap(thisBox, otherBox)));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, BBox2::ParseArg, Bbox_2, otherBox, info[0]);
+    return Napi::Boolean::New(env, do_overlap(mWrapped, otherBox));
 }
 
 
-void BBox2::Add(const v8::FunctionCallbackInfo<v8::Value> &info)
+Napi::Value BBox2::Add(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Bbox_2 &thisBox = ExtractWrapped(info.This());
-        ARGS_ASSERT(isolate, info.Length() == 1);
-        ARGS_PARSE_LOCAL(isolate, BBox2::ParseArg, Bbox_2, otherBox, info[0]);
-        return info.GetReturnValue().Set(BBox2::New(isolate, thisBox + otherBox));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, BBox2::ParseArg, Bbox_2, otherBox, info[0]);
+    return BBox2::New(env, mWrapped + otherBox);
 }

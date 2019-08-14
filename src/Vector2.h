@@ -3,28 +3,31 @@
 
 #include "CGALWrapper.h"
 #include "cgal_types.h"
-#include "v8.h"
+#include "napi.h"
 
+#include <vector>
 
 class Vector2 : public CGALWrapper<Vector2, Vector_2>
 {
 public:
 
+    Vector2(Napi::CallbackInfo const& info);
+
     // The name to be used for our JS class.
     static const char *Name;
 
-    // Add our function templates to the package exports, and return string to be used to name
-    // the class and constructor in JS.  Called indirectly at module load time via the module
+    // Add our property descriptors (instance and static methods and values) to the list that will
+    // be used to define our JS class.  Called indirectly at module load time via the module
     // init function.
-    static void RegisterMethods(v8::Isolate *isolate);
+    static void AddProperties(Napi::Env env, std::vector<PropertyDescriptor>& properties);
 
-    // Attempt to parse a v8 argument into the CGAL object referred to by receiver.  Returns true
+    // Attempt to parse a JS argument into the CGAL object referred to by receiver. Returns true
     // if parse was successful, false otherwise.
-    static bool ParseArg(v8::Isolate *isolate, v8::Local<v8::Value> arg, Vector_2 &receiver);
+    static bool ParseArg(Napi::Env env, Napi::Value arg, Vector_2& receiver);
 
-    // Convert a CGAL object of the wrapped class to a POD v8 object.  If precise is set to false,
+    // Convert a CGAL object of the wrapped class to a POD JS object. If precise is set to false,
     // will attempt to render in terms of doubles for coordinates, and may lose precision.
-    static v8::Local<v8::Value> ToPOD(v8::Isolate *isolate, const Vector_2 &vector, bool precise=true);
+    static Napi::Value ToPOD(Napi::Env env, Vector_2 const& vector, bool precise=true);
 
 private:
 

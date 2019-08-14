@@ -4,195 +4,116 @@
 #include "Curve2.h"
 #include "cgal_args.h"
 
-using namespace v8;
-using namespace node;
 using namespace std;
 
 
-const char *Arrangement2Halfedge::Name = "Halfedge";
-
-
-void Arrangement2Halfedge::RegisterMethods(Isolate *isolate)
+Arrangement2Halfedge::Arrangement2Halfedge(Napi::CallbackInfo const& info)
+:   CGALWrapper(info)
 {
-    HandleScope scope(isolate);
-    Local<FunctionTemplate> constructorTemplate = sConstructorTemplate.Get(isolate);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "toString", ToString);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "isFictitious", IsFictitious);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "source", Source);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "target", Target);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "face", Face);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "twin", Twin);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "prev", Prev);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "next", Next);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "ccb", CCB);
-    NODE_SET_PROTOTYPE_METHOD(constructorTemplate, "curve", Curve);
 }
 
 
-bool Arrangement2Halfedge::ParseArg(Isolate *isolate, Local<Value> arg, Arrangement_2::Halfedge_handle &receiver)
-{
-    if (sConstructorTemplate.Get(isolate)->HasInstance(arg)) {
-        receiver = ExtractWrapped(Local<Object>::Cast(arg));
-        return true;
-    }
+char const* Arrangement2Halfedge::Name = "Halfedge";
 
+
+void Arrangement2Halfedge::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properties)
+{
+    properties.insert(properties.end(), {
+        InstanceMethod("toString", &Arrangement2Halfedge::ToString),
+        InstanceMethod("isFictitious", &Arrangement2Halfedge::IsFictitious),
+        InstanceMethod("source", &Arrangement2Halfedge::Source),
+        InstanceMethod("target", &Arrangement2Halfedge::Target),
+        InstanceMethod("face", &Arrangement2Halfedge::Face),
+        InstanceMethod("twin", &Arrangement2Halfedge::Twin),
+        InstanceMethod("prev", &Arrangement2Halfedge::Prev),
+        InstanceMethod("next", &Arrangement2Halfedge::Next),
+        InstanceMethod("ccb", &Arrangement2Halfedge::CCB),
+        InstanceMethod("curve", &Arrangement2Halfedge::Curve)
+    });
+}
+
+
+bool Arrangement2Halfedge::ParseArg(Napi::Env env, Napi::Value arg, Arrangement_2::Halfedge_handle& receiver)
+{
     return false;
 }
 
 
-Local<Value> Arrangement2Halfedge::ToPOD(
-    Isolate *isolate, const Arrangement_2::Halfedge_handle &halfedge, bool precise)
+Napi::Value Arrangement2Halfedge::ToPOD(Napi::Env env, Arrangement_2::Halfedge_handle const& hedge, bool precise)
 {
-    EscapableHandleScope scope(isolate);
-    Local<Object> obj = Object::New(isolate);
-    return scope.Escape(obj);
+    return Napi::Object::New(env);
 }
 
 
-void Arrangement2Halfedge::ToString(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::ToString(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
     ostringstream str;
-    str << "[object "  << Name << " " << edge.ptr() << " ";
-    if (edge->is_fictitious()) {
+    str << "[object "  << Name << " " << mWrapped.ptr() << " ";
+    if (mWrapped->is_fictitious()) {
         str << "FIC ";
     }
     str << "]";
-    info.GetReturnValue().Set(String::NewFromUtf8(isolate, str.str().c_str(), NewStringType::kNormal).ToLocalChecked());
+    return Napi::String::New(info.Env(), str.str());
 }
 
 
-void Arrangement2Halfedge::IsFictitious(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::IsFictitious(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Boolean::New(isolate, edge->is_fictitious()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Napi::Boolean::New(info.Env(), mWrapped->is_fictitious());
 }
 
 
-void Arrangement2Halfedge::Source(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::Source(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Arrangement2Vertex::New(isolate, edge->source()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Arrangement2Vertex::New(info.Env(), mWrapped->source());
 }
 
 
-void Arrangement2Halfedge::Target(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::Target(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Arrangement2Vertex::New(isolate, edge->target()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Arrangement2Vertex::New(info.Env(), mWrapped->target());
 }
 
 
-void Arrangement2Halfedge::Face(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::Face(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Arrangement2Face::New(isolate, edge->face()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Arrangement2Face::New(info.Env(), mWrapped->face());
 }
 
 
-void Arrangement2Halfedge::Twin(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::Twin(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Arrangement2Halfedge::New(isolate, edge->twin()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Arrangement2Halfedge::New(info.Env(), mWrapped->twin());
 }
 
 
-void Arrangement2Halfedge::Prev(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::Prev(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Arrangement2Halfedge::New(isolate, edge->prev()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Arrangement2Halfedge::New(info.Env(), mWrapped->prev());
 }
 
 
-void Arrangement2Halfedge::Next(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::Next(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Arrangement2Halfedge::New(isolate, edge->next()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Arrangement2Halfedge::New(info.Env(), mWrapped->next());
 }
 
 
-void Arrangement2Halfedge::CCB(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::CCB(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    Local<Context> context = isolate->GetCurrentContext();
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        Local<Array> array = Array::New(isolate);
-        Arrangement_2::Ccb_halfedge_circulator first, curr;
-        first = curr = edge->ccb();
-        uint32_t i = 0;
-        do {
-            array->Set(context, i, Arrangement2Halfedge::New(isolate, curr));
-        } while(++i,++curr != first);
-        info.GetReturnValue().Set(array);
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    Napi::Env env = info.Env();
+    Napi::Array array = Napi::Array::New(env);
+    Arrangement_2::Ccb_halfedge_circulator first, curr;
+    first = curr = mWrapped->ccb();
+    uint32_t i = 0;
+    do {
+        array.Set(i, Arrangement2Halfedge::New(env, curr));
+    } while(++i,++curr != first);
+    return array;
 }
 
 
-void Arrangement2Halfedge::Curve(const FunctionCallbackInfo<Value> &info)
+Napi::Value Arrangement2Halfedge::Curve(Napi::CallbackInfo const& info)
 {
-    Isolate *isolate = info.GetIsolate();
-    HandleScope scope(isolate);
-    try {
-        Arrangement_2::Halfedge_handle &edge = ExtractWrapped(info.This());
-        info.GetReturnValue().Set(Curve2::New(isolate, edge->curve()));
-    }
-    catch (const exception &e) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, e.what(), NewStringType::kNormal).ToLocalChecked());
-    }
+    return Curve2::New(info.Env(), mWrapped->curve());
 }
