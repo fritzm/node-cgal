@@ -1,4 +1,5 @@
 #include "cgal.h"
+#include "CGAL/assertions_behaviour.h"
 #include "cgal_types.h"
 #include "AffTransformation2.h"
 #include "Arrangement2.h"
@@ -16,10 +17,41 @@
 #include "Segment2.h"
 #include "Vector2.h"
 
+#include <functional>
+#include <string>
+
 using namespace std;
+
+namespace {
+
+    function<void (char const*, char const*, char const*, int, char const*)> handle_cgal_error;
+
+    void cgal_error_handler(
+        const char *type,
+        const char *expression,
+        const char *file,
+        int line,
+        const char *explanation)
+    {
+        return handle_cgal_error(type, expression, file, line, explanation);
+    }
+
+}
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
+    handle_cgal_error = [env](
+        const char *type,
+        const char *expression,
+        const char *file,
+        int line,
+        const char *explanation)
+    {
+        throw Napi::Error::New(env, string(type) + " " + expression + " " + explanation);
+    };
+
+    CGAL::set_error_handler(cgal_error_handler);
+
     exports.Set("NEGATIVE", (int)CGAL::NEGATIVE);
     exports.Set("ZERO", (int)CGAL::ZERO);
     exports.Set("POSITIVE", (int)CGAL::POSITIVE);

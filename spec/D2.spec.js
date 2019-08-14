@@ -23,12 +23,12 @@ describe("CGAL.convexPartition2", function() {
         expect(function() { CGAL.convexPartition2([[0]]); }).toThrow();
     });
 
-    // it("should reject mathematically invalid polygons", function() {
-    //     expect(function() { CGAL.convexPartition2([[0,0]]); }).toThrow();
-    //     expect(function() { CGAL.convexPartition2([[0,0],[10,10]]); }).toThrow();
-    //     expect(function() { CGAL.convexPartition2([[0,0],[10,10],[10,0]]); }).toThrow();
-    //     expect(function() { CGAL.convexPartition2([[0,0],[10,10],[0,10],[10,0],[10,10],[0,10]]); }).toThrow();
-    // });
+    it("should reject mathematically invalid polygons", function() {
+        expect(function() { CGAL.convexPartition2([[0,0]]); }).toThrow();
+        expect(function() { CGAL.convexPartition2([[0,0],[10,10]]); }).toThrow();
+        expect(function() { CGAL.convexPartition2([[0,0],[10,10],[10,0]]); }).toThrow();
+        expect(function() { CGAL.convexPartition2([[0,0],[10,10],[0,10],[10,0],[10,10],[0,10]]); }).toThrow();
+    });
 
 });
 
