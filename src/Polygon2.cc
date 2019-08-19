@@ -126,7 +126,7 @@ Napi::Value Polygon2::Transform(Napi::CallbackInfo const& info)
 Napi::Value Polygon2::Coords(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::Array array;
+    Napi::Array array = Napi::Array::New(env, mWrapped.size());
     Vertex_iterator it;
     uint32_t i;
     for(it=mWrapped.vertices_begin(),i=0; it!=mWrapped.vertices_end(); ++it,++i) {
