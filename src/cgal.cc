@@ -18,7 +18,12 @@
 #include "Vector2.h"
 
 #include <functional>
+#include <memory>
 #include <string>
+
+#ifdef __GNUG__
+#include <cxxabi.h>
+#endif
 
 using namespace std;
 
@@ -37,6 +42,23 @@ namespace {
     }
 
 }
+
+
+string Demangle(char const* mangled)
+{
+#ifdef __GNUG__
+    size_t len = 0;
+    int status = 0;
+    unique_ptr<char, decltype(&free)> ptr(
+        __cxxabiv1::__cxa_demangle(mangled, nullptr, &len, &status),
+        &std::free
+    );
+    return ptr.get();
+#else
+    return name; 
+#endif
+}
+
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
