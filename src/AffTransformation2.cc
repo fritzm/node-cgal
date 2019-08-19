@@ -74,7 +74,7 @@ Napi::Value AffTransformation2::ToPOD(Napi::Env env, Aff_transformation_2 const&
         K::RT a = aff.hm(r, c);
         if (precise) {
             ostringstream str;
-#ifdef CGAL_USE_EPECK
+#if CGAL_USE_EPECK
             str << a.exact();
 #else
             str << a;

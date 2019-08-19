@@ -67,8 +67,8 @@ Napi::Value Point2::ToPOD(Napi::Env env, Point_2 const& point, bool precise)
 #endif
         array.Set(1, y_str.str());
     } else {
-        array.Set(0u, CGAL::to_double(point.cartesian(0)));
-        array.Set(1, CGAL::to_double(point.cartesian(1))); 
+        array.Set(0u, CGAL::to_double(point.x()));
+        array.Set(1, CGAL::to_double(point.y())); 
     }
 
     return array;

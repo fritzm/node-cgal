@@ -1,7 +1,7 @@
 #ifndef CGAL_TYPES_H
 #define CGAL_TYPES_H
 
-#ifdef CGAL_USE_EPECK
+#if CGAL_USE_EPECK
 #include "CGAL/Exact_predicates_exact_constructions_kernel.h"
 #else
 #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
@@ -21,7 +21,7 @@
 #include "CGAL/Polygon_with_holes_2.h"
 #include "CGAL/Polygon_set_2.h"
 
-#ifdef CGAL_USE_EPECK
+#if CGAL_USE_EPECK
 typedef CGAL::Exact_predicates_exact_constructions_kernel K;
 #else
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;

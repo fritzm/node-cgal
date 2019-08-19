@@ -1,7 +1,6 @@
 #ifndef CGALWRAPPER_INL_H
 #define CGALWRAPPER_INL_H
 
-#include "CGAL/Object.h"
 #include "cgal.h"
 #include "cgal_args.h"
 #include "napi.h"
@@ -69,7 +68,7 @@ template<typename NumberType>
 bool ParseNumberArg(Napi::Env env, Napi::Value arg, NumberType& parsed)
 {
     if (arg.IsNumber()) {
-        parsed = arg.As<Napi::Number>();
+        parsed = arg.As<Napi::Number>().DoubleValue();
         return true;
     } else if (arg.IsString()) {
         std::istringstream str(arg.As<Napi::String>());

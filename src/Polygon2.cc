@@ -99,7 +99,7 @@ Napi::Value Polygon2::BoundedSide(Napi::CallbackInfo const& info)
 
 Napi::Value Polygon2::Area(Napi::CallbackInfo const& info)
 {
-    return Napi::Number::New(info.Env(), mWrapped.area());
+    return Napi::Number::New(info.Env(), CGAL::to_double(mWrapped.area()));
 }
 
 
