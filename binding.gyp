@@ -34,6 +34,10 @@
             '<!(node -p "require(\'node-addon-api\').gyp")'
         ],
 
+        'defines': [
+            '<!@(echo ${CGAL_USE_EPECK:+CGAL_USE_EPECK=$CGAL_USE_EPECK})'
+        ],
+
         'conditions': [
 
             ['OS=="mac"', {
