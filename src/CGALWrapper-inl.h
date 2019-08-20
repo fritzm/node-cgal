@@ -1,11 +1,12 @@
 #ifndef CGALWRAPPER_INL_H
 #define CGALWRAPPER_INL_H
 
-#include "CGAL/Object.h"
+#include "cgal.h"
 #include "cgal_args.h"
 #include "napi.h"
 
 #include <sstream>
+#include <typeinfo>
 #include <vector>
 
 
@@ -38,6 +39,7 @@ Napi::Object CGALWrapper<WrapperClass, CGALClass>::Init(Napi::Env env, Napi::Obj
     WrapperClass::AddProperties(env, properties);
 
     properties.insert(properties.end(), {
+       CGALWrapper::StaticValue("wrappedClass", Napi::String::New(env, Demangle(typeid(CGALClass).name()))),
        CGALWrapper::InstanceMethod("toPOD", &CGALWrapper::ToPOD), 
        CGALWrapper::InstanceMethod("inspect", &CGALWrapper::Inspect), 
        CGALWrapper::InstanceMethod("toString", &CGALWrapper::ToString) 
@@ -66,7 +68,7 @@ template<typename NumberType>
 bool ParseNumberArg(Napi::Env env, Napi::Value arg, NumberType& parsed)
 {
     if (arg.IsNumber()) {
-        parsed = arg.As<Napi::Number>();
+        parsed = arg.As<Napi::Number>().DoubleValue();
         return true;
     } else if (arg.IsString()) {
         std::istringstream str(arg.As<Napi::String>());
