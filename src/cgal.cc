@@ -8,7 +8,6 @@
 #include "D2.h"
 #include "Direction2.h"
 #include "Line2.h"
-#include "NefPolyhedron2.h"
 #include "Point2.h"
 #include "Polygon2.h"
 #include "PolygonSet2.h"
@@ -109,7 +108,6 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     D2::Init(env, exports);
     Direction2::Init(env, exports);
     Line2::Init(env, exports);
-    NefPolyhedron2::Init(env, exports);
     Point2::Init(env, exports);
     Polygon2::Init(env, exports);
     PolygonSet2::Init(env, exports);
