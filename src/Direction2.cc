@@ -1,6 +1,7 @@
 #include "Direction2.h"
 #include "Point2.h"
 #include "Line2.h"
+#include "NumberTypes.h"
 #include "Vector2.h"
 #include "Segment2.h"
 #include "Ray2.h"
@@ -67,8 +68,8 @@ bool Direction2::ParseArg(Napi::Env env, Napi::Value arg, Direction_2& receiver)
     if (arg.IsObject()) {
         Napi::Object inits = arg.As<Napi::Object>();
         K::FT dx, dy;
-        if (::ParseNumberArg(env, inits["dx"], dx) &&
-            ::ParseNumberArg(env, inits["dy"], dy))
+        if (FieldNumberType::ParseArg(env, inits["dx"], dx) &&
+            FieldNumberType::ParseArg(env, inits["dy"], dy))
         {
             receiver = Direction_2(dx, dy);
             return true;
@@ -82,31 +83,8 @@ bool Direction2::ParseArg(Napi::Env env, Napi::Value arg, Direction_2& receiver)
 Napi::Value Direction2::ToPOD(Napi::Env env, Direction_2 const& direction, bool precise)
 {
     Napi::Object obj = Napi::Object::New(env);
-
-    if (precise) {
-
-        ostringstream dxstr;
-#if CGAL_USE_EPECK
-        dxstr << direction.dx().exact();
-#else
-        dxstr << setprecision(20) << direction.dx();
-#endif
-        obj.Set("dx", dxstr.str());
-        ostringstream dystr;
-#if CGAL_USE_EPECK
-        dystr << direction.dy().exact();
-#else
-        dystr << setprecision(20) << direction.dy();
-#endif
-        obj.Set("dy", dystr.str());
-
-    } else {
-
-        obj.Set("dx", CGAL::to_double(direction.dx()));
-        obj.Set("dy", CGAL::to_double(direction.dy()));
-
-    }
-
+    obj.Set("dx", FieldNumberType::ToPOD(env, direction.dx(), precise));
+    obj.Set("dy", FieldNumberType::ToPOD(env, direction.dy(), precise));
     return obj;
 }
 

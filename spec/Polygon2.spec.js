@@ -87,11 +87,11 @@ describe("CGAL.Polygon2", function() {
 
     it ("area calculation should function as expected", function() {
         var p1 = new CGAL.Polygon2([[0,0],[1,0],[1,1],[0,1]]);
-        expect(p1.area()).toBeCloseTo(1.0, 4);
+        expect(p1.area().toPOD(false)).toBeCloseTo(1.0, 4);
         var p2 = new CGAL.Polygon2([[0,0],[1,0],[1,1]]);
-        expect(p2.area()).toBeCloseTo(0.5, 4);
+        expect(p2.area().toPOD(false)).toBeCloseTo(0.5, 4);
         var p3 = new CGAL.Polygon2([[0,0],[0,1],[1,1],[1,0]]);
-        expect(p3.area()).toBeCloseTo(-1.0, 4);
+        expect(p3.area().toPOD(false)).toBeCloseTo(-1.0, 4);
     });
 
     it ("coords method should function as expected", function() {
@@ -103,7 +103,7 @@ describe("CGAL.Polygon2", function() {
     it ("should support transformation", function() {
         var p1 = new CGAL.Polygon2([[0, 0], [1, 0], [1, 1], [0, 1]]);
         var p2;
-        expect(function() {p2 = CGAL.Polygon2.transform([1, 0, 3, 0, 1, 3], p1);}).not.toThrow();
+        expect(function() {p2 = p1.transform([1, 0, 3, 0, 1, 3]);}).not.toThrow();
         expect(p2.toPOD(false)[0]).toEqual([3,3]);
     });
 });

@@ -1,6 +1,7 @@
 #include "Vector2.h"
 #include "Point2.h"
 #include "Line2.h"
+#include "NumberTypes.h"
 #include "Segment2.h"
 #include "Ray2.h"
 #include "cgal_args.h"
@@ -50,8 +51,8 @@ bool Vector2::ParseArg(Napi::Env env, Napi::Value arg, Vector_2& receiver)
     if (arg.IsObject()) {
         Napi::Object inits = arg.As<Napi::Object>();
         K::FT x, y;
-        if (::ParseNumberArg(env, inits["x"], x) &&
-            ::ParseNumberArg(env, inits["y"], y))
+        if (FieldNumberType::ParseArg(env, inits["x"], x) &&
+            FieldNumberType::ParseArg(env, inits["y"], y))
         {
             receiver = Vector_2(x, y);
             return true;
@@ -66,29 +67,7 @@ bool Vector2::ParseArg(Napi::Env env, Napi::Value arg, Vector_2& receiver)
 Napi::Value Vector2::ToPOD(Napi::Env env, Vector_2 const& vector, bool precise)
 {
     Napi::Object obj = Napi::Object::New(env);
-    if (precise) {
-
-        ostringstream xstr;
-#if CGAL_USE_EPECK
-        xstr << vector.x().exact();
-#else
-        xstr << setprecision(20) << vector.x();
-#endif
-        obj.Set("x", xstr.str());
-        ostringstream ystr;
-#if CGAL_USE_EPECK
-        ystr << vector.y().exact();
-#else
-        ystr << setprecision(20) << vector.y();
-#endif
-        obj.Set("y", ystr.str());
-
-    } else {
-
-        obj.Set("x", CGAL::to_double(vector.x()));
-        obj.Set("y", CGAL::to_double(vector.y()));
-
-    }
-
+    obj.Set("x", FieldNumberType::ToPOD(env, vector.x(), precise));
+    obj.Set("y", FieldNumberType::ToPOD(env, vector.y(), precise));
     return obj;
 }

@@ -60,8 +60,8 @@ Napi::Value ConvexPartition2(Napi::CallbackInfo const& info)
     Napi::Env env = info.Env();
     ARGS_ASSERT(env, info.Length() == 1);
     ARGS_PARSE_LOCAL(env, Polygon2::ParseArg, Polygon_2, inputPoly, info[0]);
-    Partition_Traits partition_traits;
-    list<Partition_Traits::Polygon_2> partition;
+    Partition_Traits_2 partition_traits;
+    list<Partition_Traits_2::Polygon_2> partition;
     CGAL::approx_convex_partition_2(
         inputPoly.vertices_begin(), inputPoly.vertices_end(),
         back_inserter(partition),
@@ -69,7 +69,7 @@ Napi::Value ConvexPartition2(Napi::CallbackInfo const& info)
     );
     Napi::Array array = Napi::Array::New(env);
     uint32_t i;
-    list<Partition_Traits::Polygon_2>::iterator it;
+    list<Partition_Traits_2::Polygon_2>::iterator it;
     for(it=partition.begin(),i=0; it!=partition.end(); ++it,++i) {
         array.Set(i, Polygon2::New(env, Polygon_2(it->vertices_begin(), it->vertices_end())));
     }
