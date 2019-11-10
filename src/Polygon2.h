@@ -27,7 +27,7 @@ public:
 
     // Convert a CGAL object of the wrapped class to a POD JS object. If precise is set to false,
     // will attempt to render in terms of doubles for coordinates, and may lose precision.
-    static Napi::Value ToPOD(Napi::Env env, Polygon_2 const& box, bool precise);
+    static Napi::Value ToPOD(Napi::Env env, Polygon_2 const& poly, bool precise);
 
 private:
 
@@ -43,7 +43,7 @@ private:
     Napi::Value OrientedSide(Napi::CallbackInfo const& info);
     Napi::Value BoundedSide(Napi::CallbackInfo const& info);
     Napi::Value Area(Napi::CallbackInfo const& info);
-    static Napi::Value Transform(Napi::CallbackInfo const& info);
+    Napi::Value Transform(Napi::CallbackInfo const& info);
     Napi::Value Coords(Napi::CallbackInfo const& info);
 
 };

@@ -15,7 +15,6 @@
             'src/D2.cc',
             'src/Direction2.cc',
             'src/Line2.cc',
-            'src/NefPolyhedron2.cc',
             'src/Point2.cc',
             'src/Polygon2.cc',
             'src/PolygonSet2.cc',

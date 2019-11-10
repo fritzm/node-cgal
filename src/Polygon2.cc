@@ -1,6 +1,7 @@
 #include "Polygon2.h"
-#include "Point2.h"
 #include "AffTransformation2.h"
+#include "NumberTypes.h"
+#include "Point2.h"
 #include "cgal_args.h"
 
 using namespace std;
@@ -25,8 +26,8 @@ void Polygon2::AddProperties(Napi::Env env, vector<PropertyDescriptor>& properti
         InstanceMethod("orientedSide", &Polygon2::OrientedSide),
         InstanceMethod("boundedSide", &Polygon2::BoundedSide),
         InstanceMethod("area", &Polygon2::Area),
-        InstanceMethod("coords", &Polygon2::Coords),
-        StaticMethod("transform", &Polygon2::Transform)
+        InstanceMethod("transform", &Polygon2::Transform),
+        InstanceMethod("coords", &Polygon2::Coords)
     });
 }
 
@@ -46,9 +47,9 @@ bool Polygon2::ParseArg(Napi::Env env, Napi::Value arg, Polygon_2& receiver)
 }
 
 
-Napi::Value Polygon2::ToPOD(Napi::Env env, Polygon_2 const& box, bool precise)
+Napi::Value Polygon2::ToPOD(Napi::Env env, Polygon_2 const& poly, bool precise)
 {
-    return Point2::SeqToPOD(env, box.vertices_begin(), box.vertices_end(), precise);
+    return Point2::SeqToPOD(env, poly.vertices_begin(), poly.vertices_end(), precise);
 }
 
 
@@ -99,27 +100,16 @@ Napi::Value Polygon2::BoundedSide(Napi::CallbackInfo const& info)
 
 Napi::Value Polygon2::Area(Napi::CallbackInfo const& info)
 {
-    return Napi::Number::New(info.Env(), CGAL::to_double(mWrapped.area()));
+    return FieldNumberType::New(info.Env(), mWrapped.area());
 }
 
 
 Napi::Value Polygon2::Transform(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-
-    ARGS_ASSERT(env, info.Length() == 2);
-
-    Aff_transformation_2 afft;
-    if (!AffTransformation2::ParseArg(env, info[0u], afft)) {
-        ARGS_ASSERT(env, false);
-    }
-
-    Polygon_2 poly;
-    if (!ParseArg(env, info[1], poly)) {
-        ARGS_ASSERT(env, false);
-    }
-
-    return Polygon2::New(env, CGAL::transform(afft, poly));
+    ARGS_ASSERT(env, info.Length() == 1);
+    ARGS_PARSE_LOCAL(env, AffTransformation2::ParseArg, Aff_transformation_2, afft, info[0]);
+    return Polygon2::New(env, CGAL::transform(afft, mWrapped));
 }
 
 
@@ -127,7 +117,7 @@ Napi::Value Polygon2::Coords(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::Array array = Napi::Array::New(env, mWrapped.size());
-    Vertex_iterator it;
+    Polygon_2::Vertex_iterator it;
     uint32_t i;
     for(it=mWrapped.vertices_begin(),i=0; it!=mWrapped.vertices_end(); ++it,++i) {
         array[i] = Point2::New(env, *it);

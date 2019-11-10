@@ -64,23 +64,6 @@ Napi::Object CGALWrapper<WrapperClass, CGALClass>::New(Napi::Env env, const CGAL
 }
 
 
-template<typename NumberType>
-bool ParseNumberArg(Napi::Env env, Napi::Value arg, NumberType& parsed)
-{
-    if (arg.IsNumber()) {
-        parsed = arg.As<Napi::Number>().DoubleValue();
-        return true;
-    } else if (arg.IsString()) {
-        std::istringstream str(arg.As<Napi::String>());
-        str >> parsed;
-        return !str.fail();
-    } else {
-        return false;
-    }
-    return false;
-}
-
-
 template<typename WrapperClass, typename CGALClass>
 template<typename ForwardIterator>
 Napi::Value CGALWrapper<WrapperClass, CGALClass>::SeqToPOD(

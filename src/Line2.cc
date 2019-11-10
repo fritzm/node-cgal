@@ -1,4 +1,5 @@
 #include "Line2.h"
+#include "NumberTypes.h"
 #include "Point2.h"
 
 using namespace std;
@@ -36,9 +37,9 @@ bool Line2::ParseArg(Napi::Env env, Napi::Value arg, Line_2& receiver)
         }
 
         K::FT a, b, c;
-        if (::ParseNumberArg(env, obj["a"], a) &&
-            ::ParseNumberArg(env, obj["b"], b) &&
-            ::ParseNumberArg(env, obj["c"], c))
+        if (FieldNumberType::ParseArg(env, obj["a"], a) &&
+            FieldNumberType::ParseArg(env, obj["b"], b) &&
+            FieldNumberType::ParseArg(env, obj["c"], c))
         {
             receiver = Line_2(a, b, c);
             return true;
@@ -60,39 +61,9 @@ bool Line2::ParseArg(Napi::Env env, Napi::Value arg, Line_2& receiver)
 Napi::Value Line2::ToPOD(Napi::Env env, Line_2 const& line, bool precise)
 {
     Napi::Object obj = Napi::Object::New(env);
-
-    if (precise) {
-
-        ostringstream astr;
-#if CGAL_USE_EPECK
-        astr << line.a().exact();
-#else
-        astr << setprecision(20) << line.a();
-#endif
-        obj.Set("a", astr.str());
-        ostringstream bstr;
-#if CGAL_USE_EPECK
-        bstr << line.b().exact();
-#else
-        bstr << setprecision(20) << line.b();
-#endif
-        obj.Set("b", bstr.str());
-        ostringstream cstr;
-#if CGAL_USE_EPECK
-        cstr << line.c().exact();
-#else
-        cstr << setprecision(20) << line.c();
-#endif
-        obj.Set("c", cstr.str());
-
-    } else {
-
-        obj.Set("a", CGAL::to_double(line.a()));
-        obj.Set("b", CGAL::to_double(line.b()));
-        obj.Set("c", CGAL::to_double(line.c()));
-
-    }
-
+    obj.Set("a", FieldNumberType::ToPOD(env, line.a(), precise));
+    obj.Set("b", FieldNumberType::ToPOD(env, line.b(), precise));
+    obj.Set("c", FieldNumberType::ToPOD(env, line.c(), precise));
     return obj;
 }
 

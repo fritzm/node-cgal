@@ -8,7 +8,7 @@
 #include "D2.h"
 #include "Direction2.h"
 #include "Line2.h"
-#include "NefPolyhedron2.h"
+#include "NumberTypes.h"
 #include "Point2.h"
 #include "Polygon2.h"
 #include "PolygonSet2.h"
@@ -108,13 +108,14 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     Curve2::Init(env, exports);
     D2::Init(env, exports);
     Direction2::Init(env, exports);
+    FieldNumberType::Init(env, exports);
     Line2::Init(env, exports);
-    NefPolyhedron2::Init(env, exports);
     Point2::Init(env, exports);
     Polygon2::Init(env, exports);
     PolygonSet2::Init(env, exports);
     PolygonWithHoles2::Init(env, exports);
     Ray2::Init(env, exports);
+    RingNumberType::Init(env, exports);
     Segment2::Init(env, exports);
     Vector2::Init(env, exports);
 
