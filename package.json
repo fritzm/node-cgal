@@ -1,6 +1,6 @@
 {
   "name": "node-cgal",
-  "version": "4.14.0",
+  "version": "5.0.1",
   "description": "CGAL bindings for node.js",
   "keywords": [
     "CGAL",

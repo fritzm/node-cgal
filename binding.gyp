@@ -40,7 +40,7 @@
         'conditions': [
 
             ['OS=="mac"', {
-                'libraries': [ 'libCGAL.a', 'libgmp.a', 'libmpfr.a', 'libboost_thread-mt.a' ],
+                'libraries': [ 'libgmp.a', 'libmpfr.a' ],
                 'cflags+': ['-fvisibility=hidden'],
                 'xcode_settings': {
                     'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
@@ -62,7 +62,7 @@
                     '-frounding-math',
                     '<!@(echo $CGAL_GYP_CXXFLAGS)'
                 ],
-                'libraries': [ '-lCGAL', '-lgmp', '-lmpfr', '-lboost_thread' ],
+                'libraries': [ '-lgmp', '-lmpfr' ],
                 'ldflags': [ '<!@(echo $CGAL_GYP_LDFLAGS)', '-Bstatic ' ]
             }]
 
