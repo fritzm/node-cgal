@@ -19,9 +19,25 @@ CGALWrapper<WrapperClass, CGALClass>::CGALWrapper(Napi::CallbackInfo const& info
 :   Napi::ObjectWrap<WrapperClass>(info) 
 {
     Napi::Env env = info.Env();
-    ARGS_ASSERT(env, info.Length() <= 1);
-    if (info.Length() == 1) {
-        ARGS_ASSERT(env, WrapperClass::ParseArg(env, info[0], mWrapped));
+
+    // This try/catch/rethrow is a workaround for a bug in Napi::ObjectWrap<> destruction;
+    // see https://github.com/nodejs/node-addon-api/pull/475
+
+    try {
+        ARGS_ASSERT(env, info.Length() <= 1);
+        if (info.Length() == 1) {
+            ARGS_ASSERT(env, WrapperClass::ParseArg(env, info[0], mWrapped));
+        }
+    }
+
+    catch(std::exception const&) {
+        if (!CGALWrapper::IsEmpty()) {
+            Napi::Object object = CGALWrapper::Value();
+            if (!object.IsEmpty()) {
+                napi_remove_wrap(env, object, nullptr);
+            }
+        }
+        throw;
     }
 }
 
