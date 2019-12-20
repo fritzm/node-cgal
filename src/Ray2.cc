@@ -1,6 +1,7 @@
 #include "Ray2.h"
 #include "Point2.h"
 #include "Line2.h"
+#include "NumberTypes.h"
 #include "Direction2.h"
 #include "Vector2.h"
 #include "cgal_args.h"
@@ -107,8 +108,8 @@ Napi::Value Ray2::Point(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     ARGS_ASSERT(env, info.Length() == 1);
-    ARGS_ASSERT(env, info[0].IsNumber())
-    return Point2::New(env, mWrapped.point(info[0].As<Napi::Number>()));
+    ARGS_PARSE_LOCAL(env, FieldNumberType::ParseArg, K::FT, i, info[0]);
+    return Point2::New(env, mWrapped.point(i));
 }
 
 
