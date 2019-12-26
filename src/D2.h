@@ -26,4 +26,6 @@ Napi::Value DoIntersect(Napi::CallbackInfo const& info);
 
 Napi::Value Collinear(Napi::CallbackInfo const& info);
 
+Napi::Value Midpoint(Napi::CallbackInfo const& info);
+
 #endif // !defined(D2_H)

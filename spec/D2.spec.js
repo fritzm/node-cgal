@@ -95,3 +95,18 @@ describe("CGAL.doIntersect", function() {
     });
 
 });
+
+describe("CGAL.midpoint", function() {
+    'use strict';
+
+    var CGAL = require('..');
+
+    it("should find midpoint of two points", function() {
+        var p = new CGAL.Point2([0, 0]);
+        var q = new CGAL.Point2([2, 4]);
+        var m = CGAL.midpoint(p, q);
+        expect(m.x().toPOD(false)).toEqual(1.0)
+        expect(m.y().toPOD(false)).toEqual(2.0)
+    });
+
+});
