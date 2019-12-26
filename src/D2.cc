@@ -16,6 +16,7 @@ Napi::Object D2::Init(Napi::Env env, Napi::Object exports)
     exports.Set("convexPartition2", Napi::Function::New(env, ConvexPartition2));
     exports.Set("convexHull2", Napi::Function::New(env, ConvexHull2));
     exports.Set("collinear", Napi::Function::New(env, Collinear));
+    exports.Set("midpoint", Napi::Function::New(env, Midpoint));
     return exports;
 }
 
@@ -102,4 +103,14 @@ Napi::Value Collinear(Napi::CallbackInfo const& info)
     ARGS_PARSE_LOCAL(env, Point2::ParseArg, Point_2, p1, info[1])
     ARGS_PARSE_LOCAL(env, Point2::ParseArg, Point_2, p2, info[2])
     return Napi::Boolean::New(env, CGAL::collinear(p0, p1, p2));
+}
+
+
+Napi::Value Midpoint(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    ARGS_ASSERT(env, info.Length() == 2);
+    ARGS_PARSE_LOCAL(env, Point2::ParseArg, Point_2, p0, info[0])
+    ARGS_PARSE_LOCAL(env, Point2::ParseArg, Point_2, p1, info[1])
+    return Point2::New(env, CGAL::midpoint(p0, p1));
 }
